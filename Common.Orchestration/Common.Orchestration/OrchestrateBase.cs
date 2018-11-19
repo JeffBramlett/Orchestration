@@ -108,7 +108,7 @@ namespace Common.Orchestration
 
         #region Comparison Implementation
         /// <summary>
-        /// Compare two ScheduleBase objects
+        /// Compare two OrchestrateBase objects
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -119,7 +119,7 @@ namespace Common.Orchestration
         }
 
         /// <summary>
-        /// Compare this ScheduleBase with another
+        /// Compare this OrchestrateBase with another
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>

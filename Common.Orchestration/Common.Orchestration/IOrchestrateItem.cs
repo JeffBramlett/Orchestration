@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Common.Orchestration
 {
     /// <summary>
-    /// Interface to a ScheduleItem
+    /// Interface to a OrchestrateItem
     /// </summary>
     /// <typeparam name="T">the type to use for this</typeparam>
     public interface IOrchestrateItem<T>: IComparable<IOrchestrateItem<T>>, IComparer<IOrchestrateItem<T>>

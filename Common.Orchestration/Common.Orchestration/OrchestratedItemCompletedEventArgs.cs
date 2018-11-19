@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Common.Orchestration
 {
     /// <summary>
-    /// Event args for ScheduleItem completion
+    /// Event args for OrchestrateItem completion
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class OrchestratedItemCompletedEventArgs<T>: EventArgs
@@ -18,7 +18,7 @@ namespace Common.Orchestration
         public DateTimeOffset Timestamp { get; set; }
 
         /// <summary>
-        /// The ScheduleItem that completed
+        /// The OrchestrateItem that completed
         /// </summary>
         public IOrchestrateItem<T> ScheduleItem { get; set; }
 

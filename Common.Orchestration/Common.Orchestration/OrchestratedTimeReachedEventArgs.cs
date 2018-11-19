@@ -20,15 +20,15 @@ namespace Common.Orchestration
         /// <summary>
         /// The schedule item raised
         /// </summary>
-        public T ScheduledItem { get; set; }
+        public T OrchestratedItem { get; set; }
 
         /// <summary>
         /// Default Ctor
         /// </summary>
-        /// <param name="scheduledItem">the selected item required</param>
-        public OrchestratedTimeReachedEventArgs(T scheduledItem)
+        /// <param name="orchestratedItem">the selected item required</param>
+        public OrchestratedTimeReachedEventArgs(T orchestratedItem)
         {
-            ScheduledItem = scheduledItem;
+            OrchestratedItem = orchestratedItem;
             Timestamp = DateTimeOffset.Now;
         }
     }

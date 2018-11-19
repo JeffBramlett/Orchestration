@@ -9,22 +9,22 @@ namespace Common.Orchestration
     public interface IOrchestrateBase: IComparable<IOrchestrateBase>, IComparer<IOrchestrateBase>
     {
         /// <summary>
-        /// How long does the Schedule execute
+        /// How long does the Orchestrate execute
         /// </summary>
         TimeSpan Duration { get; set; }
 
         /// <summary>
-        /// What is the DateTime the scedule ends
+        /// What is the DateTime the Orchestrate ends
         /// </summary>
         DateTime EndDateTime { get; }
 
         /// <summary>
-        /// How often is the schedule repeated
+        /// How often is the Orchestrate repeated
         /// </summary>
         TimeSpan Interval { get; }
 
         /// <summary>
-        /// is the scheudle sequential
+        /// is the Orchestrate sequential
         /// </summary>
         bool IsSequential { get; set; }
 
