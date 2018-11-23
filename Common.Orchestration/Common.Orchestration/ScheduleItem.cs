@@ -10,7 +10,7 @@ namespace Common.Orchestration
     /// Data class for a scheduled item
     /// </summary>
     /// <typeparam name="T">the type of the scheduled item</typeparam>
-    public class OrchestrateItem<T> : IOrchestrateItem<T>
+    public class ScheduleItem<T> : IScheduleItem<T>
     {
         /// <summary>
         /// Assigned id of the schedule item
@@ -49,7 +49,7 @@ namespace Common.Orchestration
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns>int of the comparison</returns>
-        public int Compare(IOrchestrateItem<T> x, IOrchestrateItem<T> y)
+        public int Compare(IScheduleItem<T> x, IScheduleItem<T> y)
         {
             return x.CompareTo(y);
         }
@@ -59,7 +59,7 @@ namespace Common.Orchestration
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public int CompareTo(IOrchestrateItem<T> other)
+        public int CompareTo(IScheduleItem<T> other)
         {
             return Timestamp.CompareTo(other.Timestamp);
         }

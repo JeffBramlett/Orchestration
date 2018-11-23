@@ -9,7 +9,7 @@ namespace Common.Orchestration
     /// <summary>
     /// Executing class for base schedule
     /// </summary>
-    public class OrchestrateBase : IOrchestrateBase
+    public class OrchestratorBase : IOrchestrateBase
     {
         #region Fields
         DateTime _start;

@@ -13,19 +13,19 @@ namespace Common.Orchestration
         /// <summary>
         /// The schudule dictionary for finding scheduled items
         /// </summary>
-        ConcurrentDictionary<int, OrchestrateItem<T>> OrchestratedItemDictionary { get; }
+        ConcurrentDictionary<int, ScheduleItem<T>> ScheduledItemDictionary { get; }
         #endregion
 
         #region Events
         /// <summary>
         /// Event raised when on every interval, every scheduled item is checked on this interval
         /// </summary>
-        event EventHandler OrchestratedTimeReached;
+        event EventHandler ScheduledTimeReached;
 
         /// <summary>
         /// Event raised when scheduled item is complete (end datetime reached)
         /// </summary>
-        event EventHandler OrchestrateddItemCompleted;
+        event EventHandler ScheduledItemCompleted;
 
         /// <summary>
         /// Event raised when the Scheduler ends (duration reached, EndDateTime reached)
@@ -42,7 +42,7 @@ namespace Common.Orchestration
         /// <param name="interval">when to raise this item again</param>
         /// <returns>the id (incremented integer) of the scheduled item</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if the start occurs before the schedulers start</exception>
-        int OrchestrateItem(T item, DateTime start, TimeSpan interval, TimeSpan duration);
+        int ScheduleItem(T item, DateTime start, TimeSpan interval, TimeSpan duration);
 
         /// <summary>
         /// Add a Item to the Scheduler
@@ -51,13 +51,13 @@ namespace Common.Orchestration
         /// <param name="offset">the timespan offset from the scheduler start datetime</param>
         /// <param name="interval">when to raise this item again</param>
         /// <returns>the id (incremented integer) of the scheduled item</returns>
-        int OrchestrateItem(T item, TimeSpan offset, TimeSpan interval, TimeSpan duration);
+        int ScheduleItem(T item, TimeSpan offset, TimeSpan interval, TimeSpan duration);
 
         /// <summary>
         /// Deletes the Scheduled Item from the scheduler
         /// </summary>
         /// <param name="id">the id of the existing scheduled item</param>
-        void DeleteOrchestratedItem(int id);
+        void DeleteScheduledItem(int id);
 
         /// <summary>
         /// Start the Scheduler

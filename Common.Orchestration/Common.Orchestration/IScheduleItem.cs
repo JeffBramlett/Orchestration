@@ -7,7 +7,7 @@ namespace Common.Orchestration
     /// Interface to a OrchestrateItem
     /// </summary>
     /// <typeparam name="T">the type to use for this</typeparam>
-    public interface IOrchestrateItem<T>: IComparable<IOrchestrateItem<T>>, IComparer<IOrchestrateItem<T>>
+    public interface IScheduleItem<T>: IComparable<IScheduleItem<T>>, IComparer<IScheduleItem<T>>
     {
         /// <summary>
         /// Id of the Schedule Item (incremented)

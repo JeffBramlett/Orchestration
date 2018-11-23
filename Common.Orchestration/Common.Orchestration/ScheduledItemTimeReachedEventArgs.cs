@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 namespace Common.Orchestration
 {
     /// <summary>
-    /// Event args for OrchestrateItem completion
+    /// Data class for args containing the Item raised
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class OrchestratedItemCompletedEventArgs<T>: EventArgs
+    public class ScheduledItemTimeReachedEventArgs<T>: EventArgs
     {
         /// <summary>
         /// When did this time get reached?
@@ -18,17 +18,17 @@ namespace Common.Orchestration
         public DateTimeOffset Timestamp { get; set; }
 
         /// <summary>
-        /// The OrchestrateItem that completed
+        /// The schedule item raised
         /// </summary>
-        public IOrchestrateItem<T> ScheduleItem { get; set; }
+        public T OrchestratedItem { get; set; }
 
         /// <summary>
         /// Default Ctor
         /// </summary>
-        /// <param name="scheduledItem"></param>
-        public OrchestratedItemCompletedEventArgs(IOrchestrateItem<T> scheduledItem)
+        /// <param name="orchestratedItem">the selected item required</param>
+        public ScheduledItemTimeReachedEventArgs(T orchestratedItem)
         {
-            ScheduleItem = scheduledItem;
+            OrchestratedItem = orchestratedItem;
             Timestamp = DateTimeOffset.Now;
         }
     }

@@ -12,23 +12,26 @@ namespace Common.Orchestration
     /// Executing class for Scheduling items
     /// </summary>
     /// <typeparam name="T">The object type to schedule</typeparam>
-    public sealed class Orchestrator<T>: OrchestrateBase, IOrchestrator<T>
+    public sealed class Orchestrator<T>: OrchestratorBase, IOrchestrator<T>
     {
+        #region Constants
+        #endregion
+
         #region Fields
         Timer _timer;
-        ConcurrentDictionary<int, OrchestrateItem<T>> _orchestratedItemDictionary;
+        ConcurrentDictionary<int, ScheduleItem<T>> _scheduledItemDictionary;
         #endregion
 
         #region Delegates and Events
         /// <summary>
         /// Event raised when on every interval, every Orchestrated item is checked on this interval
         /// </summary>
-        public event EventHandler OrchestratedTimeReached;
+        public event EventHandler ScheduledTimeReached;
 
         /// <summary>
         /// Event raised when Orchestrated item is complete (end datetime reached)
         /// </summary>
-        public event EventHandler OrchestrateddItemCompleted;
+        public event EventHandler ScheduledItemCompleted;
 
         /// <summary>
         /// Event raised when the Orchestrator ends (duration reached, EndDateTime reached)
@@ -46,27 +49,35 @@ namespace Common.Orchestration
         /// <summary>
         /// Orchestrated Items in a dictionary
         /// </summary>
-        public ConcurrentDictionary<int, OrchestrateItem<T>> OrchestratedItemDictionary
+        public ConcurrentDictionary<int, ScheduleItem<T>> ScheduledItemDictionary
         {
             get
             {
-                _orchestratedItemDictionary = _orchestratedItemDictionary ?? new ConcurrentDictionary<int, OrchestrateItem<T>>();
-                return _orchestratedItemDictionary;
+                _scheduledItemDictionary = _scheduledItemDictionary ?? new ConcurrentDictionary<int, ScheduleItem<T>>();
+                return _scheduledItemDictionary;
             }
         }
         #endregion
 
         #region Ctors and Dtors
+        public Orchestrator():
+            this(TimeSpan.FromMinutes(5))
+        {           
+        }
+
+        public Orchestrator(TimeSpan interval):
+            this(interval, TimeSpan.FromDays(365 * 10))
+        {
+        }
+
         /// <summary>
         /// Ctor using DateTime.Now as starting DateTime
         /// </summary>
         /// <param name="interval">Timespan interval of execution on eligible ScheduleItems</param>
         /// <param name="duration">How long for this scheduler to remain active</param>
-        public Orchestrator(TimeSpan interval, TimeSpan duration)
+        public Orchestrator(TimeSpan interval, TimeSpan duration):
+            this(DateTime.Now, interval, duration)
         {
-            StartDateTime = DateTime.Now;
-            Interval = interval;
-            EndDateTime = StartDateTime + duration;
         }
 
         /// <summary>
@@ -98,7 +109,7 @@ namespace Common.Orchestration
             }
 
             TimerCallback callback = new TimerCallback(HeartbeatIntervalReached);
-            TimeSpan startDuration = StartDateTime > DateTime.Now? StartDateTime - DateTime.Now: new TimeSpan();
+            TimeSpan startDuration = StartDateTime > DateTime.Now? StartDateTime - DateTime.Now: TimeSpan.FromTicks(10);
             HeartbeatTimer = new Timer(callback, null, startDuration, Interval);
         }
 
@@ -110,12 +121,12 @@ namespace Common.Orchestration
         /// <param name="interval">when to raise the item</param>
         /// <param name="duration">how much time from Offset to end this item</param>
         /// <returns>the id (incremented integer) of the scheduled item</returns>
-        public int OrchestrateItem(T item, TimeSpan offset, TimeSpan interval, TimeSpan duration)
+        public int ScheduleItem(T item, TimeSpan offset, TimeSpan interval, TimeSpan duration)
         {
-            int id = OrchestratedItemDictionary.Count;
+            int id = ScheduledItemDictionary.Count;
             DateTime next = offset == TimeSpan.MinValue? DateTime.Now: DateTime.Now + offset;
 
-            OrchestrateItem<T> orchestrateItem = new OrchestrateItem<T>()
+            ScheduleItem<T> orchestrateItem = new ScheduleItem<T>()
             {
                 Id = id,
                 Item = item, 
@@ -124,7 +135,7 @@ namespace Common.Orchestration
                 EndDateTime = next + duration
             };
 
-            OrchestratedItemDictionary.TryAdd(id, orchestrateItem);
+            ScheduledItemDictionary.TryAdd(id, orchestrateItem);
 
             return id;
         }
@@ -138,14 +149,14 @@ namespace Common.Orchestration
         /// <param name="duration">how much time from start to end this item</param>
         /// <returns>the id (incremented integer) of the scheduled item</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if the start occurs before the schedulers start</exception>
-        public int OrchestrateItem(T item, DateTime start, TimeSpan interval, TimeSpan duration)
+        public int ScheduleItem(T item, DateTime start, TimeSpan interval, TimeSpan duration)
         {
             if (start < StartDateTime)
                 throw new  ArgumentOutOfRangeException(nameof(start));
 
-            int id = OrchestratedItemDictionary.Count;
+            int id = ScheduledItemDictionary.Count;
 
-            OrchestrateItem<T> scheduleItem = new OrchestrateItem<T>()
+            ScheduleItem<T> scheduleItem = new ScheduleItem<T>()
             {
                 Id = id,
                 Item = item,
@@ -154,7 +165,7 @@ namespace Common.Orchestration
                 EndDateTime = start + duration
             };
 
-            OrchestratedItemDictionary.TryAdd(id, scheduleItem);
+            ScheduledItemDictionary.TryAdd(id, scheduleItem);
 
             return id;
         }
@@ -163,10 +174,10 @@ namespace Common.Orchestration
         /// Remove the Orchestrated item 
         /// </summary>
         /// <param name="id"></param>
-        public void DeleteOrchestratedItem(int id)
+        public void DeleteScheduledItem(int id)
         {
-            OrchestrateItem<T> notUsedItem;
-            OrchestratedItemDictionary.TryRemove(id, out notUsedItem);
+            ScheduleItem<T> notUsedItem;
+            ScheduledItemDictionary.TryRemove(id, out notUsedItem);
         }
 
         /// <summary>
@@ -192,54 +203,61 @@ namespace Common.Orchestration
         {
             DateTime now = DateTime.Now;
 
-            List<int> listToRemove = new List<int>();
-
-            foreach(var key in OrchestratedItemDictionary.Keys)
+            if (now > EndDateTime)
             {
-                if(OrchestratedItemDictionary[key].Timestamp <= now)
+                foreach (var key in ScheduledItemDictionary.Keys)
                 {
-                    RaiseOrchestrationTimeReached(OrchestratedItemDictionary[key].Item);
-                    OrchestratedItemDictionary[key].Count++;
-                    OrchestratedItemDictionary[key].Timestamp = now + OrchestratedItemDictionary[key].Interval;
-
-                    if(now > OrchestratedItemDictionary[key].EndDateTime)
-                    {
-                        listToRemove.Add(key);
-                    }
-                }
-            }
-
-            foreach(var key in listToRemove)
-            {
-                OrchestrateItem<T> raiseIt;
-                OrchestratedItemDictionary.TryRemove(key, out raiseIt);
-                RaiseOrchestrateItemCompleted(raiseIt);
-            }
-
-            if(now > EndDateTime)
-            {
-                foreach (var key in OrchestratedItemDictionary.Keys)
-                {
-                    RaiseOrchestrateItemCompleted(OrchestratedItemDictionary[key]);
+                    RaiseScheduledItemCompleted(ScheduledItemDictionary[key]);
                 }
 
                 Stop();
             }
+            else
+            {
+
+                List<int> listToRemove = new List<int>();
+
+                foreach (var key in ScheduledItemDictionary.Keys)
+                {
+                    if (ScheduledItemDictionary[key].Timestamp <= now)
+                    {
+                        ScheduledItemDictionary[key].Count++;
+                        ScheduledItemDictionary[key].Timestamp = now + ScheduledItemDictionary[key].Interval;
+
+                        if (now > ScheduledItemDictionary[key].EndDateTime)
+                        {
+                            listToRemove.Add(key);
+                        }
+                        else
+                        {
+                            RaiseScheduledItemTimeReached(ScheduledItemDictionary[key].Item);
+                        }
+                    }
+                }
+
+                foreach (var key in listToRemove)
+                {
+                    ScheduleItem<T> raiseIt;
+                    ScheduledItemDictionary.TryRemove(key, out raiseIt);
+                    RaiseScheduledItemCompleted(raiseIt);
+                }
+            }
+
         }
 
-        private void RaiseOrchestrateItemCompleted(IOrchestrateItem<T> scheduleItem)
+        private void RaiseScheduledItemCompleted(IScheduleItem<T> scheduleItem)
         {
             Task.Run(() => {
-                OrchestratedItemCompletedEventArgs<T> reached = new OrchestratedItemCompletedEventArgs<T>(scheduleItem);
-                OrchestrateddItemCompleted?.Invoke(this, reached);
+                ScheduledItemCompletedEventArgs<T> reached = new ScheduledItemCompletedEventArgs<T>(scheduleItem);
+                ScheduledItemCompleted?.Invoke(this, reached);
             });
         }
 
-        private void RaiseOrchestrationTimeReached(T itemToPush)
+        private void RaiseScheduledItemTimeReached(T itemToPush)
         {
             Task.Run(() => {
-                OrchestratedTimeReachedEventArgs<T> reached = new OrchestratedTimeReachedEventArgs<T>(itemToPush);
-                OrchestratedTimeReached?.Invoke(this, reached);
+                ScheduledItemTimeReachedEventArgs<T> reached = new ScheduledItemTimeReachedEventArgs<T>(itemToPush);
+                ScheduledTimeReached?.Invoke(this, reached);
             });
         }
         #endregion
