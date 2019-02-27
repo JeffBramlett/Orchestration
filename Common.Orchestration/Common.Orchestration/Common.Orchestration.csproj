@@ -2,12 +2,21 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Jeffrey Bramlett</Authors>
+    <Description>.NET Class library for generic implementation of an orchestrating scheduler for applications.  Based on the idea that scheduling objects is a matter of returning objects on the specified date(s) and specified times(s).  Orchestration is the coordination of these scheduled items over time, or, based on some event or rule set</Description>
+    <Copyright>Jeffrey Bramlett @ November 2018</Copyright>
+    <PackageLicenseUrl>https://github.com/JeffBramlett/Orchestration/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>http://www.jeffbramlett.com/orchestrator</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/JeffBramlett/Orchestration</RepositoryUrl>
+    <RepositoryType>Github</RepositoryType>
+    <PackageTags>schedule,orchestrate,generic,library,application</PackageTags>
+    <PackageReleaseNotes>- Integrated EquationSolver (by same author) for event and rule set orchestration</PackageReleaseNotes>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="System.Threading.Tasks.Dataflow">
-      <HintPath>..\..\..\..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.netcore.app\2.1.0\ref\netcoreapp2.1\System.Threading.Tasks.Dataflow.dll</HintPath>
-    </Reference>
+    <PackageReference Include="EquationSolver" Version="1.0.12" />
   </ItemGroup>
 
 </Project>

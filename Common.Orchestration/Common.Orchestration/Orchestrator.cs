@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
+using EquationSolver;
 
 namespace Common.Orchestration
 {
@@ -13,61 +13,36 @@ namespace Common.Orchestration
     /// Executing class for Scheduling items
     /// </summary>
     /// <typeparam name="T">The object type to schedule</typeparam>
-    public sealed class Orchestrator<T>: OrchestratorBase, IOrchestrator<T>
+    public sealed class Orchestrator<T> : OrchestratorBase<T>, IOrchestrator<T>
     {
         #region Constants
         #endregion
 
         #region Fields
         Timer _timer;
-        ConcurrentDictionary<int, ScheduleItem<T>> _scheduledItemDictionary;
-        #endregion
-
-        #region Delegates and Events
-        /// <summary>
-        /// Event raised when on every interval, every Orchestrated item is checked on this interval
-        /// </summary>
-        public event EventHandler ScheduledTimeReached;
-
-        /// <summary>
-        /// Event raised when Orchestrated item is complete (end datetime reached)
-        /// </summary>
-        public event EventHandler ScheduledItemCompleted;
-
-        /// <summary>
-        /// Event raised when the Orchestrator ends (duration reached, EndDateTime reached)
-        /// </summary>
-        public event EventHandler OrchestratorEnded;
         #endregion
 
         #region Properties
+
+        public string Name { get; set; }
+
         private Timer HeartbeatTimer
         {
             get { return _timer; }
             set { _timer = value; }
         }
 
-        /// <summary>
-        /// Orchestrated Items in a dictionary
-        /// </summary>
-        public ConcurrentDictionary<int, ScheduleItem<T>> ScheduledItemDictionary
-        {
-            get
-            {
-                _scheduledItemDictionary = _scheduledItemDictionary ?? new ConcurrentDictionary<int, ScheduleItem<T>>();
-                return _scheduledItemDictionary;
-            }
-        }
+        ConcurrentDictionary<int, ScheduleItem<T>> IOrchestrator<T>.ScheduledItemDictionary => throw new NotImplementedException();
         #endregion
 
         #region Ctors and Dtors
-        public Orchestrator():
-            this(TimeSpan.FromMinutes(5))
-        {           
+        public Orchestrator(IEquationSolver solver = null, string name = "default") :
+            this(TimeSpan.FromMinutes(5), solver, name)
+        {
         }
 
-        public Orchestrator(TimeSpan interval):
-            this(interval, TimeSpan.FromDays(365 * 10))
+        public Orchestrator(TimeSpan interval, IEquationSolver solver = null, string name = "default") :
+            this(interval, TimeSpan.FromDays(365 * 10), solver, name)
         {
         }
 
@@ -76,8 +51,8 @@ namespace Common.Orchestration
         /// </summary>
         /// <param name="interval">Timespan interval of execution on eligible ScheduleItems</param>
         /// <param name="duration">How long for this scheduler to remain active</param>
-        public Orchestrator(TimeSpan interval, TimeSpan duration):
-            this(DateTime.Now, interval, duration)
+        public Orchestrator(TimeSpan interval, TimeSpan duration, IEquationSolver solver = null, string name = "default") :
+            this(DateTime.Now, interval, duration, solver, name)
         {
         }
 
@@ -87,11 +62,17 @@ namespace Common.Orchestration
         /// <param name="start">the starting DateTime</param>
         /// <param name="interval">How often to check the scheduled items</param>
         /// <param name="duration">How long will this Scheduler be active</param>
-        public Orchestrator(DateTime start, TimeSpan interval, TimeSpan duration)
+        public Orchestrator(DateTime start, TimeSpan interval, TimeSpan duration, IEquationSolver solver = null, string name = "default")
         {
             StartDateTime = start;
             Interval = interval;
             EndDateTime = DateTime.Now + duration;
+            Name = name;
+
+            if (solver != null)
+            {
+                Solver = solver;
+            }
         }
         #endregion
 
@@ -104,13 +85,13 @@ namespace Common.Orchestration
             if (!IsStartingSet)
                 throw new ArgumentOutOfRangeException("StartDateTime", "StartDateTime must be set before calling Start()");
 
-            while(DateTime.Now < StartDateTime)
+            while (DateTime.Now < StartDateTime)
             {
                 Thread.Sleep(Interval);
             }
 
             TimerCallback callback = new TimerCallback(HeartbeatIntervalReached);
-            TimeSpan startDuration = StartDateTime > DateTime.Now? StartDateTime - DateTime.Now: TimeSpan.FromTicks(10);
+            TimeSpan startDuration = StartDateTime > DateTime.Now ? StartDateTime - DateTime.Now : TimeSpan.FromTicks(10);
             HeartbeatTimer = new Timer(callback, null, startDuration, Interval);
         }
 
@@ -122,18 +103,19 @@ namespace Common.Orchestration
         /// <param name="interval">when to raise the item</param>
         /// <param name="duration">how much time from Offset to end this item</param>
         /// <returns>the id (incremented integer) of the scheduled item</returns>
-        public int ScheduleItem(T item, TimeSpan offset, TimeSpan interval, TimeSpan duration)
+        public int ScheduleItem(T item, TimeSpan offset, TimeSpan interval, TimeSpan duration, string variableTrigger = "")
         {
             int id = ScheduledItemDictionary.Count;
-            DateTime next = offset == TimeSpan.MinValue? DateTime.Now: DateTime.Now + offset;
+            DateTime next = offset == TimeSpan.MinValue ? DateTime.Now : DateTime.Now + offset;
 
             ScheduleItem<T> orchestrateItem = new ScheduleItem<T>()
             {
                 Id = id,
-                Item = item, 
+                Item = item,
                 Interval = interval,
                 Timestamp = next,
-                EndDateTime = next + duration
+                EndDateTime = next + duration,
+                TriggerVariableName = variableTrigger
             };
 
             ScheduledItemDictionary.TryAdd(id, orchestrateItem);
@@ -150,10 +132,10 @@ namespace Common.Orchestration
         /// <param name="duration">how much time from start to end this item</param>
         /// <returns>the id (incremented integer) of the scheduled item</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if the start occurs before the schedulers start</exception>
-        public int ScheduleItem(T item, DateTime start, TimeSpan interval, TimeSpan duration)
+        public int ScheduleItem(T item, DateTime start, TimeSpan interval, TimeSpan duration, string variableTrigger = "")
         {
             if (start < StartDateTime)
-                throw new  ArgumentOutOfRangeException(nameof(start));
+                throw new ArgumentOutOfRangeException(nameof(start));
 
             int id = ScheduledItemDictionary.Count;
 
@@ -163,7 +145,8 @@ namespace Common.Orchestration
                 Item = item,
                 Interval = interval,
                 Timestamp = start,
-                EndDateTime = start + duration
+                EndDateTime = start + duration,
+                TriggerVariableName = variableTrigger
             };
 
             ScheduledItemDictionary.TryAdd(id, scheduleItem);
@@ -188,12 +171,9 @@ namespace Common.Orchestration
         {
             HeartbeatTimer.Change(Timeout.Infinite, Timeout.Infinite);
 
-            Task.Run(() => {
-                OrchestratorEndedEventArgs ended = new OrchestratorEndedEventArgs();
-                OrchestratorEnded?.Invoke(this, ended);
-            });
+            RaiseOrchestrationEnded();
         }
-        #endregion
+        #endregion;
 
         #region Event handling
         /// <summary>
@@ -243,63 +223,6 @@ namespace Common.Orchestration
                     RaiseScheduledItemCompleted(raiseIt);
                 }
             }
-        }
-
-        private void RaiseScheduledItemCompleted(IScheduleItem<T> scheduleItem)
-        {
-            Task.Run(() => {
-                ScheduledItemCompletedEventArgs<T> reached = new ScheduledItemCompletedEventArgs<T>(scheduleItem);
-                ScheduledItemCompleted?.Invoke(this, reached);
-            });
-        }
-
-        private void RaiseScheduledItemTimeReached(T itemToPush)
-        {
-            Task.Run(() => {
-                ScheduledItemTimeReachedEventArgs<T> reached = new ScheduledItemTimeReachedEventArgs<T>(itemToPush);
-                ScheduledTimeReached?.Invoke(this, reached);
-            });
-        }
-        #endregion
-
-        #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
-
-        void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects).
-                    Stop();
-                    HeartbeatTimer.Dispose();
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
-
-                disposedValue = true;
-            }
-        }
-
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        ~Orchestrator()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(false);
-        }
-
-        /// <summary>
-        /// Stop all threads and release resources
-        /// </summary>
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
-
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            GC.SuppressFinalize(this);
         }
         #endregion
     }

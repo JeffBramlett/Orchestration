@@ -1,21 +1,29 @@
-﻿using System;
+﻿using EquationSolver;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EquationSolver.Dto;
+using System.Collections.Concurrent;
 
 namespace Common.Orchestration
 {
     /// <summary>
     /// Executing class for base schedule
     /// </summary>
-    public class OrchestratorBase : IOrchestrateBase
+    public class OrchestratorBase <T>: IOrchestrateBase
     {
         #region Fields
         DateTime _start;
         DateTime _end;
         TimeSpan _duration;
         TimeSpan _interval;
+
+        ConcurrentDictionary<int, ScheduleItem<T>> _scheduledItemDictionary;
+
+        private VariableProvider _variables;
+        private IEquationSolver _solver;
         #endregion
 
         #region Properties
@@ -77,6 +85,54 @@ namespace Common.Orchestration
             get { return _end; }
             protected set { _end = value; }
         }
+
+        protected VariableProvider Variables
+        {
+            get
+            {
+                if (_variables == null)
+                {
+                    _variables = new VariableProvider();
+                    _variables.VariableValueChanged += Variables_VariableValueChanged;
+                }
+
+                return _variables;
+            }
+        }
+
+        protected IEquationSolver Solver
+        {
+            get
+            {
+                if (_solver == null)
+                {
+                    EquationProject proj = new EquationProject()
+                    {
+                        Equations = new List<Equation>(),
+                        Functions = new List<Function>(),
+                        Tables = new List<Table>(),
+                        Variables = new List<Variable>()
+                    };
+
+                    _solver = EquationSolverFactory.Instance.CreateEquationSolver(proj, Variables);
+                }
+
+                return _solver;
+            }
+            set { _solver = value; }
+        }
+
+        /// <summary>
+        /// Orchestrated Items in a dictionary
+        /// </summary>
+        protected ConcurrentDictionary<int, ScheduleItem<T>> ScheduledItemDictionary
+        {
+            get
+            {
+                _scheduledItemDictionary = _scheduledItemDictionary ?? new ConcurrentDictionary<int, ScheduleItem<T>>();
+                return _scheduledItemDictionary;
+            }
+        }
         #endregion
 
         #region Auto Properties
@@ -106,6 +162,23 @@ namespace Common.Orchestration
         public bool IsEndingSet { get; set; }
         #endregion
 
+        #region Delegates and Events
+        /// <summary>
+        /// Event raised when on every interval, every Orchestrated item is checked on this interval
+        /// </summary>
+        public event EventHandler ScheduledTimeReached;
+
+        /// <summary>
+        /// Event raised when Orchestrated item is complete (end datetime reached)
+        /// </summary>
+        public event EventHandler ScheduledItemCompleted;
+
+        /// <summary>
+        /// Event raised when the Orchestrator ends (duration reached, EndDateTime reached)
+        /// </summary>
+        public event EventHandler OrchestratorEnded;
+        #endregion
+
         #region Comparison Implementation
         /// <summary>
         /// Compare two OrchestrateBase objects
@@ -128,6 +201,86 @@ namespace Common.Orchestration
             return Ordinal - other.Ordinal;
         }
         #endregion
+
+        #region Protected Event Raisers
+
+        protected void RaiseScheduledItemCompleted(IScheduleItem<T> scheduleItem)
+        {
+            Task.Run(() =>
+            {
+                ScheduledItemCompletedEventArgs<T> reached = new ScheduledItemCompletedEventArgs<T>(scheduleItem);
+                ScheduledItemCompleted?.Invoke(this, reached);
+            });
+        }
+
+        protected void RaiseScheduledItemTimeReached(T itemToPush)
+        {
+            Task.Run(() =>
+            {
+                ScheduledItemTimeReachedEventArgs<T> reached = new ScheduledItemTimeReachedEventArgs<T>(itemToPush);
+                ScheduledTimeReached?.Invoke(this, reached);
+            });
+        }
+
+        protected void RaiseOrchestrationEnded()
+        {
+            Task.Run(() =>
+            {
+                OrchestratorEndedEventArgs ended = new OrchestratorEndedEventArgs();
+                OrchestratorEnded?.Invoke(this, ended);
+            });
+
+        }
+        #endregion
+
+        #region Privates
+
+        private void Variables_VariableValueChanged(string variableName)
+        {
+            foreach (var itemKey in ScheduledItemDictionary.Keys)
+            {
+                if (ScheduledItemDictionary[itemKey].TriggerVariableName == variableName)
+                {
+                    RaiseScheduledItemTimeReached(ScheduledItemDictionary[itemKey].Item);
+                }
+            }
+        }
+        #endregion
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        ~OrchestratorBase()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(false);
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
+
     }
 
 }

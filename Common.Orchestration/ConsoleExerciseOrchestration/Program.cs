@@ -1,5 +1,8 @@
 ﻿using Common.Orchestration;
 using System;
+using System.Collections.Generic;
+using EquationSolver;
+using EquationSolver.Dto;
 
 namespace ConsoleExerciseOrchestration
 {
@@ -9,16 +12,33 @@ namespace ConsoleExerciseOrchestration
         {
             Console.WriteLine("Orchestrator Integration Tests");
 
+            VariableProvider variables = new VariableProvider()
+            {
+                
+            };
 
-            Orchestrator<string> orchestrator = new Orchestrator<string>(TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(4.5));
+            variables.SetVariable("test", 1);
+
+            var project = MakeDemoProject();
+            var solver = EquationSolverFactory.Instance.CreateEquationSolver(project, variables);
+
+            Orchestrator<string> orchestrator = new Orchestrator<string>(TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(4.5), solver, "Demo");
 
             orchestrator.ScheduledTimeReached += Orchestrator_ScheduledItemReturned;
             orchestrator.ScheduledItemCompleted += Orchestrator_ScheduledItemCompleted;
             orchestrator.OrchestratorEnded += Orchestrator_OrchestratorEnded;
             orchestrator.Start();
 
-            orchestrator.ScheduleItem("Scheduled Item 1", TimeSpan.MinValue, TimeSpan.FromSeconds(15), TimeSpan.FromMinutes(.8));
+            ScheduleItem<string> triggeredItem = new ScheduleItem<string>()
+            {
+                TriggerVariableName = "test",
+                Item = "Triggered",
+                Interval = TimeSpan.MaxValue
+            };
+            orchestrator.ScheduleItem("Scheduled Item 1 (triggered)", TimeSpan.MinValue, TimeSpan.FromSeconds(15), TimeSpan.FromMinutes(.8), "test");
             orchestrator.ScheduleItem("Scheduled Item 2", TimeSpan.FromSeconds(45), TimeSpan.FromSeconds(15), TimeSpan.FromMinutes(1.5));
+
+            solver.SolveEquations();
 
             Console.WriteLine("Press any key to quit");
             Console.ReadKey();
@@ -42,6 +62,40 @@ namespace ConsoleExerciseOrchestration
                 var sitrea = e as ScheduledItemTimeReachedEventArgs<string>;
                 Console.WriteLine("{0} Scheduled Item returned, name = {1}", sitrea.Timestamp, sitrea.OrchestratedItem);
             }
+        }
+
+        private static EquationProject MakeDemoProject()
+        {
+            EquationProject proj = new EquationProject()
+            {
+                Equations = new List<Equation>()
+                {
+                    new Equation()
+                    {
+                        Name = "Test Setting",
+                        Expression = "1",
+                        Target = "test",
+                        UseExpression = "true"
+                    }
+                },
+                Variables = new List<Variable>(),
+                Functions = new List<Function>(),
+                Tables = new List<Table>(),
+                Audit = new AuditInfo()
+                {
+                    CreatedBy = "Demo",
+                    CreatedOn = DateTime.Now,
+                    ModifiedBy = "Demo",
+                    ModifiedOn = DateTime.Now
+                },
+                Settings = new SolverSettings()
+                {
+                    CalculationMethod = CalculationMethods.Decimal
+                },
+                Title = "Demo project"
+            };
+
+            return proj;
         }
     }
 }

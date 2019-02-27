@@ -12,6 +12,7 @@ namespace Common.Orchestration
     /// <typeparam name="T">the type of the scheduled item</typeparam>
     public class ScheduleItem<T> : IScheduleItem<T>
     {
+        #region Auto Properties
         /// <summary>
         /// Assigned id of the schedule item
         /// </summary>
@@ -41,6 +42,17 @@ namespace Common.Orchestration
         /// The DateTime when the scheduled item is to be no longer raised
         /// </summary>
         public DateTime EndDateTime { get; set; }
+
+        /// <summary>
+        /// The name of the variable that is a trigger for this item
+        /// </summary>
+        public string TriggerVariableName { get; set; }
+
+        /// <summary>
+        /// The expression that if it evaluates to true the item is sent
+        /// </summary>
+        public string EvaluateExpression { get; set; }
+        #endregion
 
         #region Comparison Implementation
         /// <summary>

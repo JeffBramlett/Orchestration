@@ -6,7 +6,7 @@ namespace Common.Orchestration
     /// <summary>
     /// Executing contract for base scheduling
     /// </summary>
-    public interface IOrchestrateBase: IComparable<IOrchestrateBase>, IComparer<IOrchestrateBase>
+    public interface IOrchestrateBase: IComparable<IOrchestrateBase>, IComparer<IOrchestrateBase>, IDisposable
     {
         /// <summary>
         /// How long does the Orchestrate execute
