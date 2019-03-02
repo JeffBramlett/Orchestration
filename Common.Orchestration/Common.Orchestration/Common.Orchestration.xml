@@ -1,0 +1,507 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Common.Orchestration</name>
+    </assembly>
+    <members>
+        <member name="P:Common.Orchestration.IExecuteItem`1.Id">
+            <summary>
+            Id of the Schedule Item (incremented)
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IExecuteItem`1.Count">
+            <summary>
+            How many times has this item been raised
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IExecuteItem`1.Item">
+            <summary>
+            The item to raise on the interval
+            </summary>
+        </member>
+        <member name="T:Common.Orchestration.IOrchestrateBase">
+            <summary>
+            Executing contract for base scheduling
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IOrchestrateBase.Name">
+            <summary>
+            The logical identifier of this Orchestrator
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IOrchestrateBase.Duration">
+            <summary>
+            How long does the Orchestrate execute
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IOrchestrateBase.EndDateTime">
+            <summary>
+            What is the DateTime the Orchestrate ends
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IOrchestrateBase.Interval">
+            <summary>
+            How often is the Orchestrate repeated
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IOrchestrateBase.IsSequential">
+            <summary>
+            is the Orchestrate sequential
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IOrchestrateBase.Ordinal">
+            <summary>
+            Sorting ordinal
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IOrchestrateBase.IsStartingSet">
+            <summary>
+            Is the StartDateTime set?
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IOrchestrateBase.IsDurationSet">
+            <summary>
+            Is the Duration set?
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IOrchestrateBase.IsEndingSet">
+            <summary>
+            Is the Ending set?
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IOrchestrateBase.StartDateTime">
+            <summary>
+            When to start the schedule.
+            </summary>
+        </member>
+        <member name="M:Common.Orchestration.IOrchestrateBase.Start">
+            <summary>
+            Start the Scheduler
+            </summary>
+        </member>
+        <member name="M:Common.Orchestration.IOrchestrateBase.Stop">
+            <summary>
+            Stop the Scheduler
+            </summary>
+        </member>
+        <member name="T:Common.Orchestration.IOrchestrator`1">
+            <summary>
+            Scheduler interface
+            </summary>
+            <typeparam name="T">The type of object to schedule</typeparam>
+        </member>
+        <member name="E:Common.Orchestration.IOrchestrator`1.ScheduledTimeReached">
+            <summary>
+            Event raised when on every interval, every scheduled item is checked on this interval
+            </summary>
+        </member>
+        <member name="E:Common.Orchestration.IOrchestrator`1.ScheduledItemCompleted">
+            <summary>
+            Event raised when scheduled item is complete (end datetime reached)
+            </summary>
+        </member>
+        <member name="E:Common.Orchestration.IOrchestrator`1.OrchestratorEnded">
+            <summary>
+            Event raised when the Scheduler ends (duration reached, EndDateTime reached)
+            </summary>
+        </member>
+        <member name="M:Common.Orchestration.IOrchestrator`1.ScheduleItem(`0,System.DateTime,System.TimeSpan,System.TimeSpan,System.String)">
+            <summary>
+            Add and Item to the Scheduler
+            </summary>
+            <param name="item">the item to add to the schedule</param>
+            <param name="start">the start datetime of the item</param>
+            <param name="interval">when to raise this item again</param>
+            <returns>the id (incremented integer) of the scheduled item</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">Thrown if the start occurs before the schedulers start</exception>
+        </member>
+        <member name="M:Common.Orchestration.IOrchestrator`1.ScheduleItem(`0,System.TimeSpan,System.TimeSpan,System.TimeSpan,System.String)">
+            <summary>
+            Add a Item to the Scheduler
+            </summary>
+            <param name="item">the item to add to the schedule</param>
+            <param name="offset">the timespan offset from the scheduler start datetime</param>
+            <param name="interval">when to raise this item again</param>
+            <returns>the id (incremented integer) of the scheduled item</returns>
+        </member>
+        <member name="M:Common.Orchestration.IOrchestrator`1.DeleteScheduledItem(System.Int32)">
+            <summary>
+            Deletes the Scheduled Item from the scheduler
+            </summary>
+            <param name="id">the id of the existing scheduled item</param>
+        </member>
+        <member name="T:Common.Orchestration.IScheduleItem`1">
+            <summary>
+            Interface to a OrchestrateItem
+            </summary>
+            <typeparam name="T">the type to use for this</typeparam>
+        </member>
+        <member name="P:Common.Orchestration.IScheduleItem`1.Interval">
+            <summary>
+            The timespan between raising the item
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IScheduleItem`1.Timestamp">
+            <summary>
+            The next DateTime to raise the item
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IScheduleItem`1.EndDateTime">
+            <summary>
+            the DateTime when the scheduled item is to be no longer raised
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IScheduleItem`1.TriggerVariableName">
+            <summary>
+            The name of the variable that is a trigger for this item
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.IScheduleItem`1.EvaluateExpression">
+            <summary>
+            The expression that if it evaluates to true the item is sent
+            </summary>
+        </member>
+        <member name="T:Common.Orchestration.Orchestration">
+            <summary>
+            Executing class as a container/manager for Orchestrators.
+            Allows for the start/stop of Orchestrators by direct calls or by equation execution.
+            <remarks>
+            To start Orchestrator use equations to set the variable named the same as the Orchestrator.Name to true
+            To stop Orchestrator use equations to set the variable named the same as the Orchestrator.Name to false
+            </remarks>
+            </summary>
+        </member>
+        <member name="M:Common.Orchestration.Orchestration.#ctor(EquationSolver.Dto.EquationProject)">
+            <summary>
+            Default Ctor
+            </summary>
+            <param name="project">supply the equation project (optional)</param>
+        </member>
+        <member name="M:Common.Orchestration.Orchestration.SetOrchestrator``1(Common.Orchestration.IOrchestrator{``0})">
+            <summary>
+            Add or Change Orchestrator
+            </summary>
+            <typeparam name="T">the orchestrator type</typeparam>
+            <param name="orchestrator">the Orchestrator to add/change</param>
+        </member>
+        <member name="M:Common.Orchestration.Orchestration.RemoveOrchestrator``1">
+            <summary>
+            Remove Orchestrators by Type
+            </summary>
+            <typeparam name="T">The type to remove from the Orchestration</typeparam>
+        </member>
+        <member name="M:Common.Orchestration.Orchestration.StartOrchestrator``1">
+            <summary>
+            Start Orchestrators by type
+            </summary>
+            <typeparam name="T">The type of Orchestrators to start</typeparam>
+        </member>
+        <member name="M:Common.Orchestration.Orchestration.StartOrchestratorsByType(System.Type[])">
+            <summary>
+            Start many Orchestrators that match the types array
+            </summary>
+            <param name="types">the array of types to start</param>
+        </member>
+        <member name="M:Common.Orchestration.Orchestration.StopOrchestratorsByType(System.Type[])">
+            <summary>
+            Stop many Orchestrators that match the types array
+            </summary>
+            <param name="types">the array of types to stop</param>
+        </member>
+        <member name="M:Common.Orchestration.Orchestration.StopOrchestrator``1">
+            <summary>
+            Stop Orchestrators for a type
+            </summary>
+            <typeparam name="T">The type for Orchestrators</typeparam>
+        </member>
+        <member name="M:Common.Orchestration.Orchestration.StartOrchestratorByName(System.String)">
+            <summary>
+            Starts an Orchestrator identified by logical name
+            </summary>
+            <param name="name">the name of the Orchestor to start</param>
+        </member>
+        <member name="M:Common.Orchestration.Orchestration.StopOrchestratorByName(System.String)">
+            <summary>
+            Stop and Orchestrator identified by logical name
+            </summary>
+            <param name="name">the name of the Orchestrator to stop</param>
+        </member>
+        <member name="M:Common.Orchestration.Orchestration.SetVariable(System.String,System.String)">
+            <summary>
+            Sets the variable value (if the variable has a trigger the associated Equations will also execute)
+            </summary>
+            <param name="variableName">The variable name</param>
+            <param name="value">the variable value</param>
+        </member>
+        <member name="M:Common.Orchestration.Orchestration.SolveEquations">
+            <summary>
+            Execute the equations
+            </summary>
+        </member>
+        <member name="T:Common.Orchestration.Orchestrator`1">
+            <summary>
+            Executing class for Scheduling items
+            </summary>
+            <typeparam name="T">The object type to schedule</typeparam>
+        </member>
+        <member name="M:Common.Orchestration.Orchestrator`1.#ctor(System.String,System.TimeSpan,System.TimeSpan,EquationSolver.IEquationSolver)">
+            <summary>
+            Ctor using DateTime.Now as starting DateTime
+            </summary>
+            <param name="interval">Timespan interval of execution on eligible ScheduleItems</param>
+            <param name="duration">How long for this scheduler to remain active</param>
+        </member>
+        <member name="M:Common.Orchestration.Orchestrator`1.#ctor(System.String,System.DateTime,System.TimeSpan,System.TimeSpan,EquationSolver.IEquationSolver)">
+            <summary>
+            Ctor using start DateTime for when this Scheduler becomes active
+            </summary>
+            <param name="start">the starting DateTime</param>
+            <param name="interval">How often to check the scheduled items</param>
+            <param name="duration">How long will this Scheduler be active</param>
+        </member>
+        <member name="M:Common.Orchestration.Orchestrator`1.ScheduleItem(`0,System.TimeSpan,System.TimeSpan,System.TimeSpan,System.String)">
+            <summary>
+            Add a schedule item to the Scheduler
+            </summary>
+            <param name="item">the Item to add</param>
+            <param name="offset">when to raise item after the scheduler startdatetime</param>
+            <param name="interval">when to raise the item</param>
+            <param name="duration">how much time from Offset to end this item</param>
+            <returns>the id (incremented integer) of the scheduled item</returns>
+        </member>
+        <member name="M:Common.Orchestration.Orchestrator`1.ScheduleItem(`0,System.DateTime,System.TimeSpan,System.TimeSpan,System.String)">
+            <summary>
+            Add and Item to the Scheduler
+            </summary>
+            <param name="item">the item to add to the schedule</param>
+            <param name="start">the start datetime of the item</param>
+            <param name="interval">when to raise this item again</param>
+            <param name="duration">how much time from start to end this item</param>
+            <returns>the id (incremented integer) of the scheduled item</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">Thrown if the start occurs before the schedulers start</exception>
+        </member>
+        <member name="M:Common.Orchestration.Orchestrator`1.DeleteScheduledItem(System.Int32)">
+            <summary>
+            Remove the Orchestrated item 
+            </summary>
+            <param name="id"></param>
+        </member>
+        <member name="T:Common.Orchestration.OrchestratorBase`1">
+            <summary>
+            Executing class for base schedule
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "P:Common.Orchestration.OrchestratorBase`1.Name" -->
+        <member name="P:Common.Orchestration.OrchestratorBase`1.StartDateTime">
+            <summary>
+            When to start executing
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.OrchestratorBase`1.Duration">
+            <summary>
+            How long to execute
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.OrchestratorBase`1.Interval">
+            <summary>
+            How often to query the scheduled items
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.OrchestratorBase`1.EndDateTime">
+            <summary>
+            Ending Datetime
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.OrchestratorBase`1.ScheduledItemDictionary">
+            <summary>
+            Orchestrated Items in a dictionary
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.OrchestratorBase`1.Ordinal">
+            <summary>
+            Sorting Ordinal
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.OrchestratorBase`1.IsSequential">
+            <summary>
+            is the scheudle sequential
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.OrchestratorBase`1.IsStartingSet">
+            <summary>
+            Is the StartDateTime set?
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.OrchestratorBase`1.IsDurationSet">
+            <summary>
+            Is the Duration set?
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.OrchestratorBase`1.IsEndingSet">
+            <summary>
+            Is the Ending set?
+            </summary>
+        </member>
+        <member name="E:Common.Orchestration.OrchestratorBase`1.ScheduledTimeReached">
+            <summary>
+            Event raised when on every interval, every Orchestrated item is checked on this interval
+            </summary>
+        </member>
+        <member name="E:Common.Orchestration.OrchestratorBase`1.ScheduledItemCompleted">
+            <summary>
+            Event raised when Orchestrated item is complete (end datetime reached)
+            </summary>
+        </member>
+        <member name="E:Common.Orchestration.OrchestratorBase`1.OrchestratorEnded">
+            <summary>
+            Event raised when the Orchestrator ends (duration reached, EndDateTime reached)
+            </summary>
+        </member>
+        <member name="M:Common.Orchestration.OrchestratorBase`1.Compare(Common.Orchestration.IOrchestrateBase,Common.Orchestration.IOrchestrateBase)">
+            <summary>
+            Compare two OrchestrateBase objects
+            </summary>
+            <param name="x"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.Orchestration.OrchestratorBase`1.CompareTo(Common.Orchestration.IOrchestrateBase)">
+            <summary>
+            Compare this OrchestrateBase with another
+            </summary>
+            <param name="other"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Common.Orchestration.OrchestratorBase`1.Start">
+            <summary>
+            Start the Scheduler
+            </summary>
+        </member>
+        <member name="M:Common.Orchestration.OrchestratorBase`1.Stop">
+            <summary>
+            Stop the Orchestrator
+            </summary>
+        </member>
+        <member name="M:Common.Orchestration.OrchestratorBase`1.HeartbeatIntervalReached(System.Object)">
+            <summary>
+            Raise the relevant Orchestrated items
+            </summary>
+            <param name="stateInfo"></param>
+        </member>
+        <member name="T:Common.Orchestration.OrchestratorEndedEventArgs">
+            <summary>
+            Event args for scheduler ending
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.OrchestratorEndedEventArgs.Timestamp">
+            <summary>
+            When did this time get reached?
+            </summary>
+        </member>
+        <member name="T:Common.Orchestration.ScheduledItemCompletedEventArgs`1">
+            <summary>
+            Event args for OrchestrateItem completion
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:Common.Orchestration.ScheduledItemCompletedEventArgs`1.Timestamp">
+            <summary>
+            When did this time get reached?
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.ScheduledItemCompletedEventArgs`1.ScheduleItem">
+            <summary>
+            The OrchestrateItem that completed
+            </summary>
+        </member>
+        <member name="M:Common.Orchestration.ScheduledItemCompletedEventArgs`1.#ctor(Common.Orchestration.IScheduleItem{`0})">
+            <summary>
+            Default Ctor
+            </summary>
+            <param name="scheduledItem"></param>
+        </member>
+        <member name="T:Common.Orchestration.ScheduledItemTimeReachedEventArgs`1">
+            <summary>
+            Data class for args containing the Item raised
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:Common.Orchestration.ScheduledItemTimeReachedEventArgs`1.Timestamp">
+            <summary>
+            When did this time get reached?
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.ScheduledItemTimeReachedEventArgs`1.OrchestratedItem">
+            <summary>
+            The schedule item raised
+            </summary>
+        </member>
+        <member name="M:Common.Orchestration.ScheduledItemTimeReachedEventArgs`1.#ctor(`0)">
+            <summary>
+            Default Ctor
+            </summary>
+            <param name="orchestratedItem">the selected item required</param>
+        </member>
+        <member name="T:Common.Orchestration.ScheduleItem`1">
+            <summary>
+            Data class for a scheduled item
+            </summary>
+            <typeparam name="T">the type of the scheduled item</typeparam>
+        </member>
+        <member name="P:Common.Orchestration.ScheduleItem`1.Id">
+            <summary>
+            Assigned id of the schedule item
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.ScheduleItem`1.Item">
+            <summary>
+            The scheduled item 
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.ScheduleItem`1.Timestamp">
+            <summary>
+            Datetime when the item will be raised again
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.ScheduleItem`1.Count">
+            <summary>
+            Count of how many time this schedule item has been raised
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.ScheduleItem`1.Interval">
+            <summary>
+            The interval to raise the item
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.ScheduleItem`1.EndDateTime">
+            <summary>
+            The DateTime when the scheduled item is to be no longer raised
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.ScheduleItem`1.TriggerVariableName">
+            <summary>
+            The name of the variable that is a trigger for this item
+            </summary>
+        </member>
+        <member name="P:Common.Orchestration.ScheduleItem`1.EvaluateExpression">
+            <summary>
+            The expression that if it evaluates to true the item is sent
+            </summary>
+        </member>
+        <member name="M:Common.Orchestration.ScheduleItem`1.Compare(Common.Orchestration.IScheduleItem{`0},Common.Orchestration.IScheduleItem{`0})">
+            <summary>
+            Compare two Schedule items
+            </summary>
+            <param name="x"></param>
+            <param name="y"></param>
+            <returns>int of the comparison</returns>
+        </member>
+        <member name="M:Common.Orchestration.ScheduleItem`1.CompareTo(Common.Orchestration.IScheduleItem{`0})">
+            <summary>
+            Compare this to another Scheduled item
+            </summary>
+            <param name="other"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

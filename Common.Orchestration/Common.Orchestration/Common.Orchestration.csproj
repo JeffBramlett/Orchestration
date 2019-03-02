@@ -10,10 +10,25 @@
     <RepositoryUrl>https://github.com/JeffBramlett/Orchestration</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
     <PackageTags>schedule,orchestrate,generic,library,application</PackageTags>
-    <PackageReleaseNotes>- Integrated EquationSolver (by same author) for event and rule set orchestration</PackageReleaseNotes>
+    <PackageReleaseNotes>- Added Orchestration with manage (add, set, remove) Orchestrator with equations (expressions) to start stop orchestrators by type, or name, or array of types)
+- Integrated EquationSolver (by same author) for event and rule set orchestration</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>C:\Users\jeff_\Source\Repos\Orchestration\Common.Orchestration\Common.Orchestration\Common.Orchestration.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Common.Orchestration.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Common.Orchestration.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="EquationSolver" Version="1.0.12" />

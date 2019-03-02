@@ -22,7 +22,7 @@ namespace ConsoleExerciseOrchestration
             var project = MakeDemoProject();
             var solver = EquationSolverFactory.Instance.CreateEquationSolver(project, variables);
 
-            Orchestrator<string> orchestrator = new Orchestrator<string>(TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(4.5), solver, "Demo");
+            Orchestrator<string> orchestrator = new Orchestrator<string>("Demo", TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(4.5), solver);
 
             orchestrator.ScheduledTimeReached += Orchestrator_ScheduledItemReturned;
             orchestrator.ScheduledItemCompleted += Orchestrator_ScheduledItemCompleted;

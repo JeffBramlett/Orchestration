@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using EquationSolver.Dto;
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace Common.Orchestration
 {
@@ -24,9 +25,14 @@ namespace Common.Orchestration
 
         private VariableProvider _variables;
         private IEquationSolver _solver;
+
+        Timer _timer;
         #endregion
 
         #region Properties
+        /// <summary>
+        /// The logical identifier of this Orchestrator
+        public string Name { get; set; }
 
         /// <summary>
         /// When to start executing
@@ -133,6 +139,13 @@ namespace Common.Orchestration
                 return _scheduledItemDictionary;
             }
         }
+
+        protected Timer HeartbeatTimer
+        {
+            get { return _timer; }
+            set { _timer = value; }
+        }
+
         #endregion
 
         #region Auto Properties
@@ -202,6 +215,37 @@ namespace Common.Orchestration
         }
         #endregion
 
+        #region Lifecycle
+        /// <summary>
+        /// Start the Scheduler
+        /// </summary>
+        public void Start()
+        {
+            if (!IsStartingSet)
+                throw new ArgumentOutOfRangeException("StartDateTime", "StartDateTime must be set before calling Start()");
+
+            while (DateTime.Now < StartDateTime)
+            {
+                Thread.Sleep(Interval);
+            }
+
+            TimerCallback callback = new TimerCallback(HeartbeatIntervalReached);
+            TimeSpan startDuration = StartDateTime > DateTime.Now ? StartDateTime - DateTime.Now : TimeSpan.FromTicks(10);
+            HeartbeatTimer = new Timer(callback, null, startDuration, Interval);
+        }
+
+        /// <summary>
+        /// Stop the Orchestrator
+        /// </summary>
+        public void Stop()
+        {
+            HeartbeatTimer.Change(Timeout.Infinite, Timeout.Infinite);
+
+            RaiseOrchestrationEnded();
+        }
+
+        #endregion
+
         #region Protected Event Raisers
 
         protected void RaiseScheduledItemCompleted(IScheduleItem<T> scheduleItem)
@@ -242,6 +286,57 @@ namespace Common.Orchestration
                 if (ScheduledItemDictionary[itemKey].TriggerVariableName == variableName)
                 {
                     RaiseScheduledItemTimeReached(ScheduledItemDictionary[itemKey].Item);
+                }
+            }
+        }
+        #endregion
+
+        #region Event handling
+        /// <summary>
+        /// Raise the relevant Orchestrated items
+        /// </summary>
+        /// <param name="stateInfo"></param>
+        private void HeartbeatIntervalReached(object stateInfo)
+        {
+            DateTime now = DateTime.Now;
+
+            if (now > EndDateTime)
+            {
+                foreach (var key in ScheduledItemDictionary.Keys)
+                {
+                    RaiseScheduledItemCompleted(ScheduledItemDictionary[key]);
+                }
+
+                Stop();
+            }
+            else
+            {
+
+                List<int> listToRemove = new List<int>();
+
+                foreach (var key in ScheduledItemDictionary.Keys)
+                {
+                    if (ScheduledItemDictionary[key].Timestamp <= now)
+                    {
+                        ScheduledItemDictionary[key].Count++;
+                        ScheduledItemDictionary[key].Timestamp = now + ScheduledItemDictionary[key].Interval;
+
+                        if (now > ScheduledItemDictionary[key].EndDateTime)
+                        {
+                            listToRemove.Add(key);
+                        }
+                        else
+                        {
+                            RaiseScheduledItemTimeReached(ScheduledItemDictionary[key].Item);
+                        }
+                    }
+                }
+
+                foreach (var key in listToRemove)
+                {
+                    ScheduleItem<T> raiseIt;
+                    ScheduledItemDictionary.TryRemove(key, out raiseIt);
+                    RaiseScheduledItemCompleted(raiseIt);
                 }
             }
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Common.Orchestration
@@ -8,6 +9,11 @@ namespace Common.Orchestration
     /// </summary>
     public interface IOrchestrateBase: IComparable<IOrchestrateBase>, IComparer<IOrchestrateBase>, IDisposable
     {
+        /// <summary>
+        /// The logical identifier of this Orchestrator
+        /// </summary>
+        string Name { get; set; }
+
         /// <summary>
         /// How long does the Orchestrate execute
         /// </summary>
@@ -52,5 +58,16 @@ namespace Common.Orchestration
         /// When to start the schedule.
         /// </summary>
         DateTime StartDateTime { get; set; }
+
+        /// <summary>
+        /// Start the Scheduler
+        /// </summary>
+        void Start();
+
+        /// <summary>
+        /// Stop the Scheduler
+        /// </summary>
+        void Stop();
+
     }
 }

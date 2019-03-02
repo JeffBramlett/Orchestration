@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Orchestration", "Com
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleExerciseOrchestration", "ConsoleExerciseOrchestration\ConsoleExerciseOrchestration.csproj", "{B9E37195-8396-40AB-B67E-32FA9368378E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Orchestration.Unit.Tests", "Common.Orchestration.Unit.Tests\Common.Orchestration.Unit.Tests.csproj", "{9DF0B046-2F53-40CC-8352-7CEED213C741}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{B9E37195-8396-40AB-B67E-32FA9368378E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B9E37195-8396-40AB-B67E-32FA9368378E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B9E37195-8396-40AB-B67E-32FA9368378E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DF0B046-2F53-40CC-8352-7CEED213C741}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DF0B046-2F53-40CC-8352-7CEED213C741}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DF0B046-2F53-40CC-8352-7CEED213C741}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DF0B046-2F53-40CC-8352-7CEED213C741}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -19,30 +19,19 @@ namespace Common.Orchestration
         #endregion
 
         #region Fields
-        Timer _timer;
         #endregion
 
         #region Properties
-
-        public string Name { get; set; }
-
-        private Timer HeartbeatTimer
-        {
-            get { return _timer; }
-            set { _timer = value; }
-        }
-
-        ConcurrentDictionary<int, ScheduleItem<T>> IOrchestrator<T>.ScheduledItemDictionary => throw new NotImplementedException();
         #endregion
 
         #region Ctors and Dtors
-        public Orchestrator(IEquationSolver solver = null, string name = "default") :
-            this(TimeSpan.FromMinutes(5), solver, name)
+        public Orchestrator(string name, IEquationSolver solver = null) :
+            this(name, TimeSpan.FromMinutes(5), solver)
         {
         }
 
-        public Orchestrator(TimeSpan interval, IEquationSolver solver = null, string name = "default") :
-            this(interval, TimeSpan.FromDays(365 * 10), solver, name)
+        public Orchestrator(string name, TimeSpan interval, IEquationSolver solver = null) :
+            this(name, interval, TimeSpan.FromDays(365 * 10), solver)
         {
         }
 
@@ -51,8 +40,8 @@ namespace Common.Orchestration
         /// </summary>
         /// <param name="interval">Timespan interval of execution on eligible ScheduleItems</param>
         /// <param name="duration">How long for this scheduler to remain active</param>
-        public Orchestrator(TimeSpan interval, TimeSpan duration, IEquationSolver solver = null, string name = "default") :
-            this(DateTime.Now, interval, duration, solver, name)
+        public Orchestrator(string name, TimeSpan interval, TimeSpan duration, IEquationSolver solver = null) :
+            this(name, DateTime.Now, interval, duration, solver)
         {
         }
 
@@ -62,7 +51,7 @@ namespace Common.Orchestration
         /// <param name="start">the starting DateTime</param>
         /// <param name="interval">How often to check the scheduled items</param>
         /// <param name="duration">How long will this Scheduler be active</param>
-        public Orchestrator(DateTime start, TimeSpan interval, TimeSpan duration, IEquationSolver solver = null, string name = "default")
+        public Orchestrator(string name, DateTime start, TimeSpan interval, TimeSpan duration, IEquationSolver solver = null)
         {
             StartDateTime = start;
             Interval = interval;
@@ -77,23 +66,6 @@ namespace Common.Orchestration
         #endregion
 
         #region Publics
-        /// <summary>
-        /// Start the Scheduler
-        /// </summary>
-        public void Start()
-        {
-            if (!IsStartingSet)
-                throw new ArgumentOutOfRangeException("StartDateTime", "StartDateTime must be set before calling Start()");
-
-            while (DateTime.Now < StartDateTime)
-            {
-                Thread.Sleep(Interval);
-            }
-
-            TimerCallback callback = new TimerCallback(HeartbeatIntervalReached);
-            TimeSpan startDuration = StartDateTime > DateTime.Now ? StartDateTime - DateTime.Now : TimeSpan.FromTicks(10);
-            HeartbeatTimer = new Timer(callback, null, startDuration, Interval);
-        }
 
         /// <summary>
         /// Add a schedule item to the Scheduler
@@ -164,66 +136,6 @@ namespace Common.Orchestration
             ScheduledItemDictionary.TryRemove(id, out notUsedItem);
         }
 
-        /// <summary>
-        /// Stop the Orchestrator
-        /// </summary>
-        public void Stop()
-        {
-            HeartbeatTimer.Change(Timeout.Infinite, Timeout.Infinite);
-
-            RaiseOrchestrationEnded();
-        }
         #endregion;
-
-        #region Event handling
-        /// <summary>
-        /// Raise the relevant Orchestrated items
-        /// </summary>
-        /// <param name="stateInfo"></param>
-        private void HeartbeatIntervalReached(object stateInfo)
-        {
-            DateTime now = DateTime.Now;
-
-            if (now > EndDateTime)
-            {
-                foreach (var key in ScheduledItemDictionary.Keys)
-                {
-                    RaiseScheduledItemCompleted(ScheduledItemDictionary[key]);
-                }
-
-                Stop();
-            }
-            else
-            {
-
-                List<int> listToRemove = new List<int>();
-
-                foreach (var key in ScheduledItemDictionary.Keys)
-                {
-                    if (ScheduledItemDictionary[key].Timestamp <= now)
-                    {
-                        ScheduledItemDictionary[key].Count++;
-                        ScheduledItemDictionary[key].Timestamp = now + ScheduledItemDictionary[key].Interval;
-
-                        if (now > ScheduledItemDictionary[key].EndDateTime)
-                        {
-                            listToRemove.Add(key);
-                        }
-                        else
-                        {
-                            RaiseScheduledItemTimeReached(ScheduledItemDictionary[key].Item);
-                        }
-                    }
-                }
-
-                foreach (var key in listToRemove)
-                {
-                    ScheduleItem<T> raiseIt;
-                    ScheduledItemDictionary.TryRemove(key, out raiseIt);
-                    RaiseScheduledItemCompleted(raiseIt);
-                }
-            }
-        }
-        #endregion
     }
 }

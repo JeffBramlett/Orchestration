@@ -10,10 +10,6 @@ namespace Common.Orchestration
     public interface IOrchestrator<T> : IOrchestrateBase, IDisposable
     {
         #region Properties
-        /// <summary>
-        /// The schudule dictionary for finding scheduled items
-        /// </summary>
-        ConcurrentDictionary<int, ScheduleItem<T>> ScheduledItemDictionary { get; }
         #endregion
 
         #region Events
@@ -59,15 +55,6 @@ namespace Common.Orchestration
         /// <param name="id">the id of the existing scheduled item</param>
         void DeleteScheduledItem(int id);
 
-        /// <summary>
-        /// Start the Scheduler
-        /// </summary>
-        void Start();
-
-        /// <summary>
-        /// Stop the Scheduler
-        /// </summary>
-        void Stop();
         #endregion
     }
 }
