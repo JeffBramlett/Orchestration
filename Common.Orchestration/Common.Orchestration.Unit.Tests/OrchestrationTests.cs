@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using EquationSolver.Dto;
+using Moq;
 using Xunit;
 
 namespace Common.Orchestration.Unit.Tests
@@ -11,18 +12,21 @@ namespace Common.Orchestration.Unit.Tests
         [Fact]
         public void SetOrchestratorTest()
         {
+            Mock<IOrchestratorRepository<string>> mockStringRepo = new Mock<IOrchestratorRepository<string>>();
+            Mock<IOrchestratorRepository<int>> mockIntRepo = new Mock<IOrchestratorRepository<int>>();
+
             IOrchestration orchestration = new Orchestration();
 
             bool stringOrchestratorEnded = false;
             bool intOrchestratorEnded = false;
 
-            IOrchestrator<string> stringOrchestrator = new Orchestrator<string>("ByString");
+            IOrchestrator<string> stringOrchestrator = new Orchestrator<string>("ByString", mockStringRepo.Object);
             stringOrchestrator.OrchestratorEnded += delegate(object sender, EventArgs args)
             {
                 stringOrchestratorEnded = true;
             };
 
-            IOrchestrator<int> intOrchestrator = new Orchestrator<int>("ByInt");
+            IOrchestrator<int> intOrchestrator = new Orchestrator<int>("ByInt", mockIntRepo.Object);
             intOrchestrator.OrchestratorEnded += delegate (object sender, EventArgs args)
             {
                 intOrchestratorEnded = true;
@@ -43,6 +47,9 @@ namespace Common.Orchestration.Unit.Tests
         [Fact]
         public void OrchestrationProjectSolveTest()
         {
+            Mock<IOrchestratorRepository<string>> mockStringRepo = new Mock<IOrchestratorRepository<string>>();
+            Mock<IOrchestratorRepository<int>> mockIntRepo = new Mock<IOrchestratorRepository<int>>();
+
             string byString = "ByString";
             string byInt = "ByInt";
 
@@ -70,13 +77,13 @@ namespace Common.Orchestration.Unit.Tests
 
             IOrchestration orchestration = new Orchestration(project);
 
-            IOrchestrator<string> stringOrchestrator = new Orchestrator<string>(byString);
+            IOrchestrator<string> stringOrchestrator = new Orchestrator<string>(byString, mockStringRepo.Object);
             stringOrchestrator.OrchestratorEnded += delegate (object sender, EventArgs args)
             {
                 stringOrchestratorEnded = true;
             };
 
-            IOrchestrator<int> intOrchestrator = new Orchestrator<int>(byInt);
+            IOrchestrator<int> intOrchestrator = new Orchestrator<int>(byInt, mockIntRepo.Object);
             intOrchestrator.OrchestratorEnded += delegate (object sender, EventArgs args)
             {
                 intOrchestratorEnded = true;
@@ -91,6 +98,50 @@ namespace Common.Orchestration.Unit.Tests
 
             Assert.True(stringOrchestratorEnded);
             Assert.True(intOrchestratorEnded);
+        }
+
+        [Fact]
+        public void TestOnlyOnceInOrchestrator()
+        {
+            Mock<IOrchestratorRepository<string>> mockStringRepo = new Mock<IOrchestratorRepository<string>>();
+            Mock<IOrchestratorRepository<int>> mockIntRepo = new Mock<IOrchestratorRepository<int>>();
+
+            int count1 = 0;
+            int count2 = 0;
+            IOrchestrator<string> stringOrchestrator = new Orchestrator<string>("not relevant", mockStringRepo.Object);
+            stringOrchestrator.ScheduledTimeReached += delegate(object sender, EventArgs args)
+            {
+                count1++;
+            };
+            stringOrchestrator.ScheduledItemCompleted += delegate(object sender, EventArgs args)
+            {
+                count2++;
+            };
+
+            stringOrchestrator.Start();
+
+            ScheduleItem<string> sched = new ScheduleItem<string>()
+            {
+                Item = "stuff",
+                MaxOccurrances = 1,
+                StartDateTime = DateTime.Now
+            };
+
+            stringOrchestrator.ScheduleItem(sched);
+
+            BusyWait(10000);
+
+            Assert.True(count1 == 1);
+            Assert.True(count2 == 1);
+        }
+
+        private void BusyWait(int milliseconds)
+        {
+            DateTime end = DateTime.Now + TimeSpan.FromMilliseconds(milliseconds);
+            while (DateTime.Now < end)
+            {
+                Thread.Sleep(100);
+            }
         }
     }
 }

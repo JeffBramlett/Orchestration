@@ -25,13 +25,24 @@ namespace Common.Orchestration
         #endregion
 
         #region Ctors and Dtors
-        public Orchestrator(string name, IEquationSolver solver = null) :
-            this(name, TimeSpan.FromMinutes(5), solver)
+        /// <summary>
+        /// Minimal Ctor
+        /// </summary>
+        /// <param name="name">Name of Orchestrator</param>
+        /// <param name="solver">the equation solver to use for orchestrating schedule items</param>
+        public Orchestrator(string name, IOrchestratorRepository<T> repository, IEquationSolver solver = null) :
+            this(name, TimeSpan.FromSeconds(1), repository, solver)
         {
         }
 
-        public Orchestrator(string name, TimeSpan interval, IEquationSolver solver = null) :
-            this(name, interval, TimeSpan.FromDays(365 * 10), solver)
+        /// <summary>
+        /// Ctor for defining interval and name of orchestrator
+        /// </summary>
+        /// <param name="name">Name of the Orchestrator</param>
+        /// <param name="interval">the interval to use for schedule items</param>
+        /// <param name="solver">the equation solver to use for orchestrating schedule items</param>
+        public Orchestrator(string name, TimeSpan interval, IOrchestratorRepository<T> repository, IEquationSolver solver = null) :
+            this(name, interval, TimeSpan.FromDays(365 * 10), repository, solver)
         {
         }
 
@@ -40,8 +51,8 @@ namespace Common.Orchestration
         /// </summary>
         /// <param name="interval">Timespan interval of execution on eligible ScheduleItems</param>
         /// <param name="duration">How long for this scheduler to remain active</param>
-        public Orchestrator(string name, TimeSpan interval, TimeSpan duration, IEquationSolver solver = null) :
-            this(name, DateTime.Now, interval, duration, solver)
+        public Orchestrator(string name, TimeSpan interval, TimeSpan duration, IOrchestratorRepository<T> repository, IEquationSolver solver = null) :
+            this(name, DateTime.Now, interval, duration, repository, solver)
         {
         }
 
@@ -51,12 +62,13 @@ namespace Common.Orchestration
         /// <param name="start">the starting DateTime</param>
         /// <param name="interval">How often to check the scheduled items</param>
         /// <param name="duration">How long will this Scheduler be active</param>
-        public Orchestrator(string name, DateTime start, TimeSpan interval, TimeSpan duration, IEquationSolver solver = null)
+        public Orchestrator(string name, DateTime start, TimeSpan interval, TimeSpan duration, IOrchestratorRepository<T> repository, IEquationSolver solver = null)
         {
             StartDateTime = start;
             Interval = interval;
             EndDateTime = DateTime.Now + duration;
             Name = name;
+            Repository = repository;
 
             if (solver != null)
             {
@@ -66,76 +78,59 @@ namespace Common.Orchestration
         #endregion
 
         #region Publics
+        public IEnumerable<IScheduleItem<T>> GetItems()
+        {
+            return Repository.AllItems();
+        }
 
         /// <summary>
-        /// Add a schedule item to the Scheduler
+        /// Build and schedule your own item
         /// </summary>
-        /// <param name="item">the Item to add</param>
-        /// <param name="offset">when to raise item after the scheduler startdatetime</param>
-        /// <param name="interval">when to raise the item</param>
-        /// <param name="duration">how much time from Offset to end this item</param>
-        /// <returns>the id (incremented integer) of the scheduled item</returns>
-        public int ScheduleItem(T item, TimeSpan offset, TimeSpan interval, TimeSpan duration, string variableTrigger = "")
+        /// <param name="scheduleItem">the item to schedule</param>
+        /// <returns>the id for the schedule item</returns>
+        public int ScheduleItem(IScheduleItem<T> scheduleItem)
         {
-            int id = ScheduledItemDictionary.Count;
-            DateTime next = offset == TimeSpan.MinValue ? DateTime.Now : DateTime.Now + offset;
+            if (scheduleItem == null)
+                throw new ArgumentOutOfRangeException(nameof(scheduleItem));
 
-            ScheduleItem<T> orchestrateItem = new ScheduleItem<T>()
+            scheduleItem.Timestamp = scheduleItem.StartDateTime;
+
+            if (scheduleItem.MaxOccurrances == 1)
             {
-                Id = id,
-                Item = item,
-                Interval = interval,
-                Timestamp = next,
-                EndDateTime = next + duration,
-                TriggerVariableName = variableTrigger
-            };
-
-            ScheduledItemDictionary.TryAdd(id, orchestrateItem);
+                scheduleItem.EndDateTime = EndDateTime;
+            }
+            int id = Repository.SaveOrchestratorItem(scheduleItem);
 
             return id;
         }
 
         /// <summary>
-        /// Add and Item to the Scheduler
+        /// Update a schedule item
         /// </summary>
-        /// <param name="item">the item to add to the schedule</param>
-        /// <param name="start">the start datetime of the item</param>
-        /// <param name="interval">when to raise this item again</param>
-        /// <param name="duration">how much time from start to end this item</param>
-        /// <returns>the id (incremented integer) of the scheduled item</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown if the start occurs before the schedulers start</exception>
-        public int ScheduleItem(T item, DateTime start, TimeSpan interval, TimeSpan duration, string variableTrigger = "")
+        /// <param name="item">the changed scheduled item</param>
+        /// <returns>the id of the item</returns>
+        public int UpdateScheduledItem(ScheduleItem<T> item)
         {
-            if (start < StartDateTime)
-                throw new ArgumentOutOfRangeException(nameof(start));
-
-            int id = ScheduledItemDictionary.Count;
-
-            ScheduleItem<T> scheduleItem = new ScheduleItem<T>()
-            {
-                Id = id,
-                Item = item,
-                Interval = interval,
-                Timestamp = start,
-                EndDateTime = start + duration,
-                TriggerVariableName = variableTrigger
-            };
-
-            ScheduledItemDictionary.TryAdd(id, scheduleItem);
-
-            return id;
+            return Repository.UpdateOrchestratorItem(item);
         }
 
         /// <summary>
         /// Remove the Orchestrated item 
         /// </summary>
         /// <param name="id"></param>
-        public void DeleteScheduledItem(int id)
+        public bool DeleteScheduledItem(int id)
         {
-            ScheduleItem<T> notUsedItem;
-            ScheduledItemDictionary.TryRemove(id, out notUsedItem);
+            return Repository.RemoveOrchestratorItem(id);
+        }
+
+        public IEnumerable<IScheduleItem<T>> FindByVariableTargetName(string variableTargetName)
+        {
+            return Repository.FindByVariableTargetName(variableTargetName);
         }
 
         #endregion;
+
+        #region Privates
+        #endregion
     }
 }

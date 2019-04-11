@@ -13,7 +13,7 @@ namespace Common.Orchestration
     /// <summary>
     /// Executing class for base schedule
     /// </summary>
-    public class OrchestratorBase <T>: IOrchestrateBase
+    public class OrchestratorBase<T> : IOrchestrateBase
     {
         #region Fields
         DateTime _start;
@@ -21,10 +21,9 @@ namespace Common.Orchestration
         TimeSpan _duration;
         TimeSpan _interval;
 
-        ConcurrentDictionary<int, ScheduleItem<T>> _scheduledItemDictionary;
-
         private VariableProvider _variables;
         private IEquationSolver _solver;
+        private IOrchestratorRepository<T> _repo;
 
         Timer _timer;
         #endregion
@@ -92,6 +91,13 @@ namespace Common.Orchestration
             protected set { _end = value; }
         }
 
+        protected IOrchestratorRepository<T> Repository
+        {
+            get { return _repo; }
+            set { _repo = value; }
+        }
+
+
         protected VariableProvider Variables
         {
             get
@@ -126,18 +132,6 @@ namespace Common.Orchestration
                 return _solver;
             }
             set { _solver = value; }
-        }
-
-        /// <summary>
-        /// Orchestrated Items in a dictionary
-        /// </summary>
-        protected ConcurrentDictionary<int, ScheduleItem<T>> ScheduledItemDictionary
-        {
-            get
-            {
-                _scheduledItemDictionary = _scheduledItemDictionary ?? new ConcurrentDictionary<int, ScheduleItem<T>>();
-                return _scheduledItemDictionary;
-            }
         }
 
         protected Timer HeartbeatTimer
@@ -281,12 +275,9 @@ namespace Common.Orchestration
 
         private void Variables_VariableValueChanged(string variableName)
         {
-            foreach (var itemKey in ScheduledItemDictionary.Keys)
+            foreach (var scheduledItem in Repository.FindByVariableTargetName(variableName))
             {
-                if (ScheduledItemDictionary[itemKey].TriggerVariableName == variableName)
-                {
-                    RaiseScheduledItemTimeReached(ScheduledItemDictionary[itemKey].Item);
-                }
+                RaiseScheduledItemTimeReached(scheduledItem.Item);
             }
         }
         #endregion
@@ -302,9 +293,9 @@ namespace Common.Orchestration
 
             if (now > EndDateTime)
             {
-                foreach (var key in ScheduledItemDictionary.Keys)
+                foreach (var schedItem in Repository.AllItems())
                 {
-                    RaiseScheduledItemCompleted(ScheduledItemDictionary[key]);
+                    Repository.RemoveOrchestratorItem(schedItem.Id);
                 }
 
                 Stop();
@@ -312,31 +303,41 @@ namespace Common.Orchestration
             else
             {
 
-                List<int> listToRemove = new List<int>();
+                List<IScheduleItem<T>> listToRemove = new List<IScheduleItem<T>>();
 
-                foreach (var key in ScheduledItemDictionary.Keys)
+                foreach (var schedItem in Repository.AllItems())
                 {
-                    if (ScheduledItemDictionary[key].Timestamp <= now)
+                    if (schedItem.Timestamp <= now)
                     {
-                        ScheduledItemDictionary[key].Count++;
-                        ScheduledItemDictionary[key].Timestamp = now + ScheduledItemDictionary[key].Interval;
-
-                        if (now > ScheduledItemDictionary[key].EndDateTime)
+                        if (DateTime.Now > schedItem.EndDateTime)
                         {
-                            listToRemove.Add(key);
+                            listToRemove.Add(schedItem);
                         }
                         else
                         {
-                            RaiseScheduledItemTimeReached(ScheduledItemDictionary[key].Item);
+                            if (schedItem.MaxOccurrances == 0 || schedItem.Count < schedItem.MaxOccurrances)
+                            {
+                                schedItem.Count = schedItem.Count + 1;
+                                schedItem.Timestamp = now + schedItem.Interval;
+                                RaiseScheduledItemTimeReached(schedItem.Item);
+                            }
+                            else
+                            {
+                                schedItem.Timestamp = DateTime.Now;
+                                schedItem.EndDateTime = DateTime.Now;
+
+                                listToRemove.Add(schedItem);
+                            }
+
+                            Repository.UpdateOrchestratorItem(schedItem);
                         }
                     }
                 }
 
-                foreach (var key in listToRemove)
+                foreach (var schedItem in listToRemove)
                 {
-                    ScheduleItem<T> raiseIt;
-                    ScheduledItemDictionary.TryRemove(key, out raiseIt);
-                    RaiseScheduledItemCompleted(raiseIt);
+                    RaiseScheduledItemCompleted(schedItem);
+                    Repository.RemoveOrchestratorItem(schedItem.Id);
                 }
             }
         }

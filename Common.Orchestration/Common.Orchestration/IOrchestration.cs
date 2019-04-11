@@ -4,15 +4,15 @@ namespace Common.Orchestration
 {
     public interface IOrchestration
     {
-        void RemoveOrchestrator<T>();
-        void SetOrchestrator<T>(IOrchestrator<T> orchestrator);
-        void SetVariable(string variableName, string value);
-        void SolveEquations();
-        void StartOrchestrator<T>();
-        void StartOrchestratorByName(string name);
-        void StartOrchestratorsByType(params Type[] types);
-        void StopOrchestrator<T>();
-        void StopOrchestratorByName(string name);
-        void StopOrchestratorsByType(params Type[] types);
+        IOrchestration RemoveOrchestrator<T>();
+        IOrchestration SetOrchestrator<T>(IOrchestrator<T> orchestrator);
+        IOrchestration SetVariable(string variableName, string value);
+        IOrchestration SolveEquations();
+        IOrchestration StartOrchestrator<T>();
+        IOrchestration StartOrchestratorByName(string name);
+        IOrchestration StartOrchestratorsByType(params Type[] types);
+        IOrchestration StopOrchestrator<T>();
+        IOrchestration StopOrchestratorByName(string name);
+        IOrchestration StopOrchestratorsByType(params Type[] types);
     }
 }

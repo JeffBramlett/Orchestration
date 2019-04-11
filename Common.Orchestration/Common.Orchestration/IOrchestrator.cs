@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Common.Orchestration
 {
@@ -30,30 +31,27 @@ namespace Common.Orchestration
         #endregion
 
         #region Methods
-        /// <summary>
-        /// Add and Item to the Scheduler
-        /// </summary>
-        /// <param name="item">the item to add to the schedule</param>
-        /// <param name="start">the start datetime of the item</param>
-        /// <param name="interval">when to raise this item again</param>
-        /// <returns>the id (incremented integer) of the scheduled item</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown if the start occurs before the schedulers start</exception>
-        int ScheduleItem(T item, DateTime start, TimeSpan interval, TimeSpan duration, string variableTrigger = "");
+        IEnumerable<IScheduleItem<T>> GetItems();
 
         /// <summary>
-        /// Add a Item to the Scheduler
+        /// Build and schedule your own item
         /// </summary>
-        /// <param name="item">the item to add to the schedule</param>
-        /// <param name="offset">the timespan offset from the scheduler start datetime</param>
-        /// <param name="interval">when to raise this item again</param>
+        /// <param name="scheduleItem">the item to schedule</param>
         /// <returns>the id (incremented integer) of the scheduled item</returns>
-        int ScheduleItem(T item, TimeSpan offset, TimeSpan interval, TimeSpan duration, string variableTrigger = "");
+        int ScheduleItem(IScheduleItem<T> scheduleItem);
+
+        /// <summary>
+        /// Find all scheduled items with the variable target named
+        /// </summary>
+        /// <param name="variableTargetName">the name of the variable target</param>
+        /// <returns>collection (may be empty) of scheduled items</returns>
+        IEnumerable<IScheduleItem<T>> FindByVariableTargetName(string variableTargetName);
 
         /// <summary>
         /// Deletes the Scheduled Item from the scheduler
         /// </summary>
         /// <param name="id">the id of the existing scheduled item</param>
-        void DeleteScheduledItem(int id);
+        bool DeleteScheduledItem(int id);
 
         #endregion
     }

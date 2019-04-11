@@ -10,10 +10,13 @@
     <RepositoryUrl>https://github.com/JeffBramlett/Orchestration</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
     <PackageTags>schedule,orchestrate,generic,library,application</PackageTags>
-    <PackageReleaseNotes>- Added Orchestration with manage (add, set, remove) Orchestrator with equations (expressions) to start stop orchestrators by type, or name, or array of types)
+    <PackageReleaseNotes>- Added Fluent API to Orchestration
+- Added single occurance scheduling
+- Added Orchestration with manage (add, set, remove) Orchestrator with equations (expressions) to start stop orchestrators by type, or name, or array of types)
 - Integrated EquationSolver (by same author) for event and rule set orchestration</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.1.1</Version>
+    <Version>1.1.5</Version>
+    <AssemblyVersion>1.1.5.0</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -31,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="EquationSolver" Version="1.0.12" />
+    <PackageReference Include="EquationSolver" Version="1.0.14" />
   </ItemGroup>
 
 </Project>

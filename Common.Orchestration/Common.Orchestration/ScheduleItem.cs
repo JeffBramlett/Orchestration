@@ -24,6 +24,11 @@ namespace Common.Orchestration
         public T Item { get; set; }
 
         /// <summary>
+        /// MaximumOccurances that can be scheduled (0 is unbounded)
+        /// </summary>
+        public int MaxOccurrances { get; set; }
+
+        /// <summary>
         /// Datetime when the item will be raised again
         /// </summary>
         public DateTime Timestamp { get; set; }
@@ -32,6 +37,8 @@ namespace Common.Orchestration
         /// Count of how many time this schedule item has been raised
         /// </summary>
         public int Count { get; set; }
+
+        public DateTime StartDateTime { get; set; }
 
         /// <summary>
         /// The interval to raise the item

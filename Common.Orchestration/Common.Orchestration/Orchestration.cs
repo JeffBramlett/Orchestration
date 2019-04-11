@@ -109,7 +109,8 @@ namespace Common.Orchestration
         /// </summary>
         /// <typeparam name="T">the orchestrator type</typeparam>
         /// <param name="orchestrator">the Orchestrator to add/change</param>
-        public void SetOrchestrator<T>(IOrchestrator<T> orchestrator)
+        /// <returns>this Orchestration (Fluent API)</returns>
+        public IOrchestration SetOrchestrator<T>(IOrchestrator<T> orchestrator)
         {
             if(string.IsNullOrEmpty(orchestrator.Name))
                 throw new ArgumentNullException("Orchestator.Name", "Orchestator name cannot be empty or null");
@@ -130,13 +131,16 @@ namespace Common.Orchestration
 
                 Orchestrators[typKey] = orchestrator;
             }
+
+            return this;
         }
 
         /// <summary>
         /// Remove Orchestrators by Type
         /// </summary>
         /// <typeparam name="T">The type to remove from the Orchestration</typeparam>
-        public void RemoveOrchestrator<T>()
+        /// <returns>this Orchestration (Fluent API)</returns>
+        public IOrchestration RemoveOrchestrator<T>()
         {
             Type typKey = typeof(T);
 
@@ -146,13 +150,16 @@ namespace Common.Orchestration
                 Orchestrators.Remove(typKey);
                 Variables.RemoveVariable(name);
             }
+
+            return this;
         }
 
         /// <summary>
         /// Start Orchestrators by type
         /// </summary>
         /// <typeparam name="T">The type of Orchestrators to start</typeparam>
-        public void StartOrchestrator<T>()
+        /// <returns>this Orchestration (Fluent API)</returns>
+        public IOrchestration StartOrchestrator<T>()
         {
             Type typKey = typeof(T);
 
@@ -161,13 +168,16 @@ namespace Common.Orchestration
                 var orch = Orchestrators[typKey] as IOrchestrator<T>;
                 orch.Start();
             }
+
+            return this;
         }
 
         /// <summary>
         /// Start many Orchestrators that match the types array
         /// </summary>
         /// <param name="types">the array of types to start</param>
-        public void StartOrchestratorsByType(params Type[] types)
+        /// <returns>this Orchestration (Fluent API)</returns>
+        public IOrchestration StartOrchestratorsByType(params Type[] types)
         {
             if (types != null && types.Length > 0)
             {
@@ -181,13 +191,16 @@ namespace Common.Orchestration
                     }
                 }
             }
+
+            return this;
         }
 
         /// <summary>
         /// Stop many Orchestrators that match the types array
         /// </summary>
         /// <param name="types">the array of types to stop</param>
-        public void StopOrchestratorsByType(params Type[] types)
+        /// <returns>this Orchestration (Fluent API)</returns>
+        public IOrchestration StopOrchestratorsByType(params Type[] types)
         {
             if (types != null && types.Length > 0)
             {
@@ -202,13 +215,15 @@ namespace Common.Orchestration
                     }
                 }
             }
+            return this;
         }
 
         /// <summary>
         /// Stop Orchestrators for a type
         /// </summary>
         /// <typeparam name="T">The type for Orchestrators</typeparam>
-        public void StopOrchestrator<T>()
+        /// <returns>this Orchestration (Fluent API)</returns>
+        public IOrchestration StopOrchestrator<T>()
         {
             Type typKey = typeof(T);
 
@@ -218,13 +233,15 @@ namespace Common.Orchestration
                 orch.Stop();
             }
 
+            return this;
         }
 
         /// <summary>
         /// Starts an Orchestrator identified by logical name
         /// </summary>
         /// <param name="name">the name of the Orchestor to start</param>
-        public void StartOrchestratorByName(string name)
+        /// <returns>this Orchestration (Fluent API)</returns>
+        public IOrchestration StartOrchestratorByName(string name)
         {
             var orchestrators = Orchestrators.Values;
             foreach (var orchestrator in orchestrators)
@@ -235,13 +252,16 @@ namespace Common.Orchestration
                     break;
                 }
             }
+
+            return this;
         }
 
         /// <summary>
         /// Stop and Orchestrator identified by logical name
         /// </summary>
         /// <param name="name">the name of the Orchestrator to stop</param>
-        public void StopOrchestratorByName(string name)
+        /// <returns>this Orchestration (Fluent API)</returns>
+        public IOrchestration StopOrchestratorByName(string name)
         {
             var orchestrators = Orchestrators.Values;
             foreach (var orchestrator in orchestrators)
@@ -252,6 +272,8 @@ namespace Common.Orchestration
                     break;
                 }
             }
+
+            return this;
         }
         #endregion
 
@@ -261,17 +283,21 @@ namespace Common.Orchestration
         /// </summary>
         /// <param name="variableName">The variable name</param>
         /// <param name="value">the variable value</param>
-        public void SetVariable(string variableName, string value)
+        /// <returns>this Orchestration (Fluent API)</returns>
+        public IOrchestration SetVariable(string variableName, string value)
         {
             Variables.SetVariable(variableName, value);
+            return this;
         }
 
         /// <summary>
         /// Execute the equations
         /// </summary>
-        public void SolveEquations()
+        /// <returns>this Orchestration (Fluent API)</returns>
+        public IOrchestration SolveEquations()
         {
             Solver.SolveEquations();
+            return this;
         }
         #endregion
 

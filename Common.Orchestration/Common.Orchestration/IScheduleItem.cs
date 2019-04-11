@@ -10,9 +10,19 @@ namespace Common.Orchestration
     public interface IScheduleItem<T> : IExecuteItem<T>
     {
         /// <summary>
+        /// The starting DateTime
+        /// </summary>
+        DateTime StartDateTime { get; set; }
+
+        /// <summary>
         /// The timespan between raising the item
         /// </summary>
         TimeSpan Interval { get; set; }
+
+        /// <summary>
+        /// MaximumOccurances that can be scheduled (0 is unbounded)
+        /// </summary>
+        int MaxOccurrances { get; set; }
 
         /// <summary>
         /// The next DateTime to raise the item
