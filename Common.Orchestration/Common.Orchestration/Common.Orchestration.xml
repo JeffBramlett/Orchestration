@@ -105,6 +105,17 @@
             Event raised when the Scheduler ends (duration reached, EndDateTime reached)
             </summary>
         </member>
+        <member name="M:Common.Orchestration.IOrchestrator`1.Initialize">
+            <summary>
+            Initialize the Orchestrator
+            </summary>
+        </member>
+        <member name="M:Common.Orchestration.IOrchestrator`1.GetItems">
+            <summary>
+            Get all items in the Orchestrator
+            </summary>
+            <returns>Enumeration of all the items in the Orchestrator</returns>
+        </member>
         <member name="M:Common.Orchestration.IOrchestrator`1.ScheduleItem(Common.Orchestration.IScheduleItem{`0})">
             <summary>
             Build and schedule your own item
@@ -112,11 +123,11 @@
             <param name="scheduleItem">the item to schedule</param>
             <returns>the id (incremented integer) of the scheduled item</returns>
         </member>
-        <member name="M:Common.Orchestration.IOrchestrator`1.FindByVariableTargetName(System.String)">
+        <member name="M:Common.Orchestration.IOrchestrator`1.Find(System.Func{Common.Orchestration.IScheduleItem{`0},System.Object[],System.Boolean},System.Object[])">
             <summary>
             Find all scheduled items with the variable target named
             </summary>
-            <param name="variableTargetName">the name of the variable target</param>
+            <param name="filterDelegate">delegate to filter results</param>
             <returns>collection (may be empty) of scheduled items</returns>
         </member>
         <member name="M:Common.Orchestration.IOrchestrator`1.DeleteScheduledItem(System.Int32)">
@@ -137,11 +148,12 @@
             </summary>
             <returns>All the items in the Repository</returns>
         </member>
-        <member name="M:Common.Orchestration.IOrchestratorRepository`1.FindByVariableTargetName(System.String)">
+        <member name="M:Common.Orchestration.IOrchestratorRepository`1.Find(System.Func{Common.Orchestration.IScheduleItem{`0},System.Object[],System.Boolean},System.Object[])">
             <summary>
             Filter all items in the repository and return them
             </summary>
-            <param name="variableName">the matching name of the varable</param>
+            <param name="filterDelegate">the filtering function</param>
+            <param name="args">the arguments for the function</param>
             <returns>collection of matching items</returns>
         </member>
         <member name="M:Common.Orchestration.IOrchestratorRepository`1.SaveOrchestratorItem(Common.Orchestration.IScheduleItem{`0})">
@@ -336,6 +348,17 @@
             <param name="interval">How often to check the scheduled items</param>
             <param name="duration">How long will this Scheduler be active</param>
         </member>
+        <member name="M:Common.Orchestration.Orchestrator`1.Initialize">
+            <summary>
+            Initialize the Orchestrator
+            </summary>
+        </member>
+        <member name="M:Common.Orchestration.Orchestrator`1.GetItems">
+            <summary>
+            Get all items in the Orchestrator
+            </summary>
+            <returns>Enumeration of all the items in the Orchestrator</returns>
+        </member>
         <member name="M:Common.Orchestration.Orchestrator`1.ScheduleItem(Common.Orchestration.IScheduleItem{`0})">
             <summary>
             Build and schedule your own item
@@ -355,6 +378,13 @@
             Remove the Orchestrated item 
             </summary>
             <param name="id"></param>
+        </member>
+        <member name="M:Common.Orchestration.Orchestrator`1.Find(System.Func{Common.Orchestration.IScheduleItem{`0},System.Object[],System.Boolean},System.Object[])">
+            <summary>
+            Find all scheduled items with the variable target named
+            </summary>
+            <param name="variableTargetName">the name of the variable target</param>
+            <returns>collection (may be empty) of scheduled items</returns>
         </member>
         <member name="T:Common.Orchestration.OrchestratorBase`1">
             <summary>

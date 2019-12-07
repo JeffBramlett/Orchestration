@@ -20,9 +20,10 @@ namespace Common.Orchestration
         /// <summary>
         /// Filter all items in the repository and return them
         /// </summary>
-        /// <param name="variableName">the matching name of the varable</param>
+        /// <param name="filterDelegate">the filtering function</param>
+        /// <param name="args">the arguments for the function</param>
         /// <returns>collection of matching items</returns>
-        IEnumerable<IScheduleItem<T>> FindByVariableTargetName(string variableName);
+        IEnumerable<IScheduleItem<T>> Find(Func<IScheduleItem<T>, object[], bool> filterDelegate, object[] args);
 
         /// <summary>
         /// Save the item to the Repository

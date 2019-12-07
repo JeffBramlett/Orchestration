@@ -31,6 +31,15 @@ namespace Common.Orchestration
         #endregion
 
         #region Methods
+        /// <summary>
+        /// Initialize the Orchestrator
+        /// </summary>
+        void Initialize();
+
+        /// <summary>
+        /// Get all items in the Orchestrator
+        /// </summary>
+        /// <returns>Enumeration of all the items in the Orchestrator</returns>
         IEnumerable<IScheduleItem<T>> GetItems();
 
         /// <summary>
@@ -43,9 +52,9 @@ namespace Common.Orchestration
         /// <summary>
         /// Find all scheduled items with the variable target named
         /// </summary>
-        /// <param name="variableTargetName">the name of the variable target</param>
+        /// <param name="filterDelegate">delegate to filter results</param>
         /// <returns>collection (may be empty) of scheduled items</returns>
-        IEnumerable<IScheduleItem<T>> FindByVariableTargetName(string variableTargetName);
+        IEnumerable<IScheduleItem<T>> Find(Func<IScheduleItem<T>, object[], bool> filterDelegate, object[] args);
 
         /// <summary>
         /// Deletes the Scheduled Item from the scheduler

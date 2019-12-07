@@ -42,7 +42,8 @@ namespace Common.Orchestration
             {
                 if (_start == DateTime.MinValue)
                 {
-                    _start = DateTime.Now;
+                    var now = DateTime.Now;
+                    _start = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second);
                 }
 
                 return _start;
@@ -275,10 +276,16 @@ namespace Common.Orchestration
 
         private void Variables_VariableValueChanged(string variableName)
         {
-            foreach (var scheduledItem in Repository.FindByVariableTargetName(variableName))
+            var targetItems = Repository.Find(MatchOnVariableName, new object[] {variableName});
+            foreach (var scheduleItem in targetItems)
             {
-                RaiseScheduledItemTimeReached(scheduledItem.Item);
+                RaiseScheduledItemTimeReached(scheduleItem.Item);
             }
+        }
+
+        private bool MatchOnVariableName(IScheduleItem<T> orchestrateItem, object[] args)
+        {
+            return orchestrateItem.TriggerVariableName == args[0].ToString();
         }
         #endregion
 

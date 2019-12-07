@@ -6,17 +6,21 @@
     <Description>.NET Class library for generic implementation of an orchestrating scheduler for applications.  Based on the idea that scheduling objects is a matter of returning objects on the specified date(s) and specified times(s).  Orchestration is the coordination of these scheduled items over time, or, based on some event or rule set</Description>
     <Copyright>Jeffrey Bramlett @ November 2018</Copyright>
     <PackageLicenseUrl>https://github.com/JeffBramlett/Orchestration/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>http://www.jeffbramlett.com/orchestrator</PackageProjectUrl>
+    <PackageProjectUrl>https://bluejaywebsvc.com/OpenSource/Orchestration</PackageProjectUrl>
     <RepositoryUrl>https://github.com/JeffBramlett/Orchestration</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
     <PackageTags>schedule,orchestrate,generic,library,application</PackageTags>
-    <PackageReleaseNotes>- Added Fluent API to Orchestration
+    <PackageReleaseNotes>Added Repository to Orchestrator
+Simplified scheduling with encapsulation
+- Added Fluent API to Orchestration
 - Added single occurance scheduling
 - Added Orchestration with manage (add, set, remove) Orchestrator with equations (expressions) to start stop orchestrators by type, or name, or array of types)
 - Integrated EquationSolver (by same author) for event and rule set orchestration</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.1.5</Version>
-    <AssemblyVersion>1.1.5.0</AssemblyVersion>
+    <Version>1.1.7</Version>
+    <AssemblyVersion>1.1.7.0</AssemblyVersion>
+    <PackageIconUrl>https://bluejaywebsvc.com/images/bluejaylogo.png</PackageIconUrl>
+    <Company>Blue Jay Web Services</Company>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

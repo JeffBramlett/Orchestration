@@ -19,6 +19,8 @@ namespace Common.Orchestration
         #endregion
 
         #region Fields
+
+        private bool IsInited { get; set; }
         #endregion
 
         #region Properties
@@ -78,6 +80,23 @@ namespace Common.Orchestration
         #endregion
 
         #region Publics
+
+        /// <summary>
+        /// Initialize the Orchestrator
+        /// </summary>
+        public void Initialize()
+        {
+            if (!IsInited)
+            {
+
+                IsInited = true;
+            }
+        }
+
+        /// <summary>
+        /// Get all items in the Orchestrator
+        /// </summary>
+        /// <returns>Enumeration of all the items in the Orchestrator</returns>
         public IEnumerable<IScheduleItem<T>> GetItems()
         {
             return Repository.AllItems();
@@ -123,9 +142,14 @@ namespace Common.Orchestration
             return Repository.RemoveOrchestratorItem(id);
         }
 
-        public IEnumerable<IScheduleItem<T>> FindByVariableTargetName(string variableTargetName)
+        /// <summary>
+        /// Find all scheduled items with the variable target named
+        /// </summary>
+        /// <param name="variableTargetName">the name of the variable target</param>
+        /// <returns>collection (may be empty) of scheduled items</returns>
+        public IEnumerable<IScheduleItem<T>> Find(Func<IScheduleItem<T>, object[], bool> filterDelegate, object[] args)
         {
-            return Repository.FindByVariableTargetName(variableTargetName);
+            return Repository.Find(filterDelegate, args);
         }
 
         #endregion;
